@@ -1,0 +1,26 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this template
+*/
+/* 
+    Created on : 16 nov 2025, 12:53:05 p.m.
+    Author     : Resen
+*/
+
+/*
+ * Regla de estilo para el título principal de las vistas.
+ */
+
+
+.main-title {
+    /* ¡Añade !important para forzar la sobrescritura de Tailwind! */
+    font-size: 5rem !important; 
+    font-weight: 300 !important; 
+    text-align: center !important;
+    margin-bottom: 5rem !important; 
+    color: darkred !important; /* Mantenemos este color obvio para la prueba */
+}
+/* Regla para centrar también el subtítulo */
+.subtitle-center {
+    text-align: center;
+}
