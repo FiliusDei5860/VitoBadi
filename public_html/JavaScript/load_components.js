@@ -44,8 +44,10 @@ function loadFavicon() {
 }
 // Llama a la función para cargar la barra de navegación
 document.addEventListener('DOMContentLoaded', () => {
-    // CARGA EL FAVICON PRIMERO (en el HEAD)
+    // CARGA EL FAVICON PRIMERO 
     loadFavicon();
-    // La cabecera (navbar.html) se cargará en el elemento con id="navbar-placeholder"
+    // CARGA LA NAVBAR 
     loadComponent('navbar-placeholder', 'navbar.html'); 
+    // CARGA EL FOOTER 
+    loadComponent('footer-placeholder', 'footer.html');
 });

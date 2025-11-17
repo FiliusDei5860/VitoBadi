@@ -5,7 +5,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
 -->
 <html>
     <head>
-        <title>VitoBadi - Crear Nueva Habitación</title>
+        <title>VitoBadi - Actualizar Datos de Habitación</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="./Css/style.css">
@@ -22,8 +22,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
 
 
     <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
-        <h2 class="main-title">Crear Nueva Habitación</h2>
-        <p class="subtitle-center text-gray-600 mb-6">Completa los detalles de la habitación que deseas poner en alquiler.</p>
+        <h2 class="main-title">Actualizar Datos de Habitación</h2>
+        <p class="subtitle-center text-gray-600 mb-6">Completa los datos que quieras cambiar.</p>
         
         <form id="create-room-form" action="/habitacion/crear" method="POST" enctype="multipart/form-data" class="form-container">
             
@@ -46,20 +46,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                         <div class="form-group">
                             <label for="precio" class="block text-sm font-medium text-gray-700 mb-1">Precio Mensual (€):</label>
                             <input type="number" id="precio" name="precio" required min="1" step="10" placeholder="350">
-                        </div>
-                    </fieldset>
-
-                    <fieldset class="form-section">
-                        <legend>Ubicación y Características</legend>
-                        
-                        <div class="form-group">
-                            <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección Completa:</label>
-                            <input type="text" id="direccion" name="direccion" required placeholder="Calle, Número, Ciudad, Código Postal">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tamanio" class="block text-sm font-medium text-gray-700 mb-1">Tamaño de la habitación (m²)</label>
-                            <input type="number" id="tamanio" name="tamanio" required min="1" value="20">
                         </div>
                     </fieldset>
                 </div>
@@ -91,18 +77,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
             
             <div class="form-actions">
                 <a href="mis_habitaciones.html" class="btn btn-secondary">Cancelar y Volver</a>
-                <button type="submit" class="btn btn-primary">Guardar Habitación</button>
+                <button type="submit" class="btn btn-primary">Actualizar Habitación</button>
             </div>
 
         </form>
     </main>
-<!--ésta sección de abajo es para insertar El footer -->
-
+<!--ésta sección de abajo es para insertar el footer -->
     <div id="footer-placeholder"></div>
     <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
         </main>
     <script src="./JavaScript/load_components.js"></script>
 <!--ésta sección de arriba es para insertar la navbar -->
-    
     </body>
 </html>
