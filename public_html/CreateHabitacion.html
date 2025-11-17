@@ -11,94 +11,91 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
         <link rel="stylesheet" href="./Css/style.css">
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body>
-        <header class="main-header">
-        <nav class="navbar">
-            <ul class="nav-links">
-                <li><a href="mis_habitaciones.html">Mis Habitaciones</a></li>
-                <li><a href="solicitudes.html">Solicitudes</a></li>
-                <li><a href="mis_alquileres.html">Mis Alquileres</a></li>
-            </ul>
-            <div class="user-info">
-                <span>Hola pati</span>
-                <a href="perfil.html" class="user-icon">👤</a>
-                <a href="logout.html" class="logout-btn">Logout</a>
-            </div>
-        </nav>
-    </header>
+   <body class="bg-gray-100 font-sans"> 
+       
+<!--ésta sección de abajo es para insertar la navbar -->
+    <div id="navbar-placeholder"></div>
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
+        </main>
+    <script src="./JavaScript/load_components.js"></script>
+<!--ésta sección de arriba es para insertar la navbar -->
+
+
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
+        <h2 class="main-title">Crear Nueva Habitación</h2>
+        <p class="subtitle-center text-gray-600 mb-6">Completa los detalles de la habitación que deseas poner en alquiler.</p>
         
-        <main class="container">
-        <h2 class="main-title text-gray-900">Crear Nueva Habitación</h2>
-        <p class="subtitle-center">Completa los detalles de la habitación que deseas poner en alquiler.</p>
-        
-        <form id="create-room-form" action="/habitacion/crear" method="POST" enctype="multipart/form-data">
+        <form id="create-room-form" action="/habitacion/crear" method="POST" enctype="multipart/form-data" class="form-container">
             
-            <fieldset class="form-section">
-                <legend>Información Básica</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
-                <div class="form-group">
-                    <label for="titulo">Título de la Habitación:</label>
-                    <input type="text" id="titulo" name="titulo" required placeholder="Ej: Habitación grande con balcón y vistas">
+                <div>
+                    <fieldset class="form-section mb-6">
+                        <legend>Información Básica</legend>
+                        
+                        <div class="form-group">
+                            <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">Título de la Habitación:</label>
+                            <input type="text" id="titulo" name="titulo" required placeholder="Ej: Habitación grande con balcón y vistas">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción Detallada:</label>
+                            <textarea id="descripcion" name="descripcion" rows="4" required placeholder="Describe las comodidades, cercanía y normas."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="precio" class="block text-sm font-medium text-gray-700 mb-1">Precio Mensual (€):</label>
+                            <input type="number" id="precio" name="precio" required min="50" step="10" placeholder="350">
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section">
+                        <legend>Ubicación y Características</legend>
+                        
+                        <div class="form-group">
+                            <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección Completa:</label>
+                            <input type="text" id="direccion" name="direccion" required placeholder="Calle, Número, Ciudad, Código Postal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tamanio" class="block text-sm font-medium text-gray-700 mb-1">Tamaño de la habitación (m²)</label>
+                            <input type="number" id="tamanio" name="tamanio" required min="1" value="20">
+                        </div>
+                    </fieldset>
                 </div>
-                
-                <div class="form-group">
-                    <label for="descripcion">Descripción Detallada:</label>
-                    <textarea id="descripcion" name="descripcion" rows="4" required placeholder="Describe las comodidades, cercanía y normas."></textarea>
+
+                <div>
+                    <fieldset class="form-section h-full">
+                        <legend>Imágenes</legend>
+                        
+                        <div class="space-y-4 h-full flex flex-col justify-between">
+                            <label class="block text-sm font-medium text-gray-700">Subir Fotos de la Habitación:</label>
+                            
+                            <input type="file" id="imagenes" name="imagenes[]" accept="image/*" multiple required class="hidden"> 
+
+                            <div id="drop-zone" class="border-2 border-dashed border-gray-400 p-10 rounded-lg text-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition duration-150 ease-in-out flex-grow flex items-center justify-center relative">
+                                <p class="text-gray-500 text-lg">
+                                    Arrastra y suelta tus imágenes aquí, o haz clic:
+                                </p>
+                                <button type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow-md transition duration-150 ease-in-out mt-4">Seleccionar Archivos</button>
+                            </div>
+
+                            <div id="preview-container" class="grid grid-cols-3 gap-4 mt-4">
+                            </div>
+                            
+                            <p class="text-xs text-gray-500 mt-2">Sube al menos 3 fotos claras para aumentar el interés.</p>
+                        </div>
+                    </fieldset>
                 </div>
-
-                <div class="form-group">
-                    <label for="precio">Precio Mensual (€):</label>
-                    <input type="number" id="precio" name="precio" required min="50" step="10" placeholder="Ej: 350">
-                </div>
-
-            </fieldset>
-
-            <fieldset class="form-section">
-                <legend>Ubicación y Características</legend>
-                
-                <div class="form-group">
-                    <label for="direccion">Dirección Completa:</label>
-                    <input type="text" id="direccion" name="direccion" required placeholder="Calle, Número, Ciudad, Código Postal">
-                </div>
-
-                <div class="form-group">
-                    <label for="capacidad">Tamamño de la habitación </label>
-                    <input type="number" id="tamanio" name="tamanio" required min="1" value="20">
-                </div>
-                
-               
-            </fieldset>
-
-            <fieldset class="form-section">
-    <legend>Imágenes</legend>
-    
-    <div class="form-group">
-        <label for="imagenes">Subir Fotos de la Habitación:</label>
-        
-        <input type="file" id="imagenes" name="imagenes[]" accept="image/*" multiple required style="display: none;"> 
-
-        <div id="drop-zone" class="drop-zone">
-            <p>
-                Arrastra y suelta tus imágenes aquí, o haz clic para seleccionarlas.
-            </p>
-            <button type="button" class="btn btn-secondary">Seleccionar Archivos</button>
-        </div>
-
-        <div id="preview-container" class="preview-container">
             </div>
-        
-        <small>Sube al menos 3 fotos claras de la habitación y áreas comunes.</small>
-    </div>
-</fieldset>
             
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Guardar Habitación</button>
                 <a href="mis_habitaciones.html" class="btn btn-secondary">Cancelar y Volver</a>
+                <button type="submit" class="btn btn-primary">Guardar Habitación</button>
             </div>
 
         </form>
     </main>
-
-    <script src="js/main.js"></script>
-</body>
+    
+    </body>
 </html>
