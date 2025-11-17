@@ -28,8 +28,24 @@ function loadComponent(elementId, filePath) {
             container.innerHTML = `<p style="color: red;">Error al cargar la navegación.</p>`;
         });
 }
+
+function loadFavicon() {
+    // 1. Crea el elemento <link>
+    const link = document.createElement('link');
+    
+    // 2. Define los atributos
+    link.rel = 'icon';
+    link.type = 'image/png';
+    // CLAVE: La ruta sigue siendo la misma. Usa '?v=' para evitar la caché.
+    link.href = "./Public_icons/VitoBadiIcon.jpg";
+
+    // 3. Inserta el elemento en la sección <head>
+    document.head.appendChild(link);
+}
 // Llama a la función para cargar la barra de navegación
 document.addEventListener('DOMContentLoaded', () => {
+    // CARGA EL FAVICON PRIMERO (en el HEAD)
+    loadFavicon();
     // La cabecera (navbar.html) se cargará en el elemento con id="navbar-placeholder"
     loadComponent('navbar-placeholder', 'navbar.html'); 
 });
