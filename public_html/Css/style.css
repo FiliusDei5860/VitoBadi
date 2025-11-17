@@ -223,3 +223,62 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this t
 .user-icon:hover {
     color: white;
 }
+
+/* ESTILOS DE TARJETA DE SOLICITUD (REUTILIZABLE)                           */
+
+.solicitud-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
+    border: 1px solid #e5e7eb; /* gray-200 */
+    transition: transform 0.2s;
+}
+
+.solicitud-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.solicitud-info-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* space-x-4 */
+}
+
+/* Placeholder para la imagen de la habitación */
+.solicitud-imagen-placeholder {
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    background-color: #d1d5db; /* gray-300 */
+    border-radius: 0.25rem;
+    flex-shrink: 0; /* Asegura que no se haga más pequeño */
+    /* Aquí se puede añadir un icono SVG en el centro */
+}
+
+.solicitud-titulo {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #1f2937;
+}
+
+.solicitud-secundario {
+    font-size: 0.875rem; /* text-sm */
+    color: #4b5563;
+}
+
+/* Botones Icono (como la lupa) */
+.btn-icon {
+    color: #4b5563; /* gray-600 */
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-icon:hover {
+    color: #4f46e5; /* indigo-600 */
+    background-color: #eef2ff; /* indigo-50 */
+}
