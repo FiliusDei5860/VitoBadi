@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Estilos del proyecto -->
+    <link rel="stylesheet" href="Css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- ============= NAVBAR SOLO CON LOGO PARA LOGIN ============= -->
+    <header class="main-header">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="navbar-content"> 
+
+                <div class="navbar-logo-group"> 
+                    <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo"> 
+                    <h1 class="navbar-title">VitoBadi</h1>
+                </div>
+
+                <!-- En login NO mostramos enlaces ni usuario -->
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================= CONTENIDO LOGIN ========================= -->
+    <main class="login-main flex-grow">
+        <div class="container">
+
+            <h1 class="main-title">Accede a tu cuenta</h1>
+            <p class="subtitle-center">
+                Introduce tu email y contraseña para entrar en VitoBadi.
+            </p>
+
+            <form id="form-login" class="form-container" novalidate>
+
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input
+                        type="email"
+                        id="login-email"
+                        name="login-email"
+                        autocomplete="email"
+                        required
+                    >
+                    <span class="error" id="error-email"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="login-password"
+                        autocomplete="current-password"
+                        required
+                    >
+                    <span class="error" id="error-password"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        Login
+                    </button>
+                </div>
+
+                <div class="error-general" id="error-general" hidden></div>
+            </form>
+        </div>
+    </main>
+
+    <!-- ========================= FOOTER OFICIAL ========================= -->
+    <footer class="main-footer">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 footer-content-group">
+
+            <div class="footer-section footer-legal">
+                <p>&copy; 2025 VitoBadi. Todos los derechos reservados.</p>
+            </div>
+
+            <div class="footer-section footer-links">
+                <h4 class="footer-title">Enlaces</h4>
+                <ul class="space-y-2">
+                    <li><a href="aviso_legal.html" class="footer-link">Aviso Legal</a></li>
+                    <li><a href="politica_privacidad.html" class="footer-link">Política de Privacidad</a></li>
+                    <li><a href="contacto.html" class="footer-link">Contacto</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section footer-contact">
+                <h4 class="footer-title">Síguenos</h4>
+                <div class="flex space-x-4">
+                    <a href="#" class="footer-social-icon" title="Facebook">FB</a>
+                    <a href="#" class="footer-social-icon" title="Instagram">IG</a>
+                    <a href="#" class="footer-social-icon" title="Twitter/X">TW</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login JS -->
+    <script src="JavaScript/login.js"></script>
+
+</body>
+</html>

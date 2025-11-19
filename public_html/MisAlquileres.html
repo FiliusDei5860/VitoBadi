@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis alquileres – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="Css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- HEADER COMPLETO (propietario logueado) -->
+    <header class="main-header">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="navbar-content"> 
+
+                <div class="navbar-logo-group"> 
+                    <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo"> 
+                    <h1 class="navbar-title">VitoBadi</h1>
+                </div>
+
+                <nav class="hidden sm:block">
+                    <div class="nav-links"> 
+                        <a href="mis_habitaciones.html">Mis Habitaciones</a>
+                        <a href="solicitudes.html">Solicitudes</a>
+                        <a href="MisAlquileres.html">Mis Alquileres</a>
+                    </div>
+                </nav>
+
+                <div class="user-actions"> 
+                    <span>Hola pati</span>
+                    <a href="perfil.html" class="user-icon">👤</a>
+                    <a href="logout.html" class="logout-btn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================= LISTA DE ALQUILERES ======================= -->
+    <main class="rent-main flex-grow">
+        <div class="container">
+            <h1 class="main-title">Mis alquileres</h1>
+            <p class="subtitle-center">
+                Aquí puedes ver los contratos de alquiler activos o históricos.
+            </p>
+
+            <section id="lista-alquileres" class="rent-list">
+                <!-- JS rellenará aquí las tarjetas de alquiler -->
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 footer-content-group">
+
+            <div class="footer-section footer-legal">
+                <p>&copy; 2025 VitoBadi. Todos los derechos reservados.</p>
+            </div>
+
+            <div class="footer-section footer-links">
+                <h4 class="footer-title">Enlaces</h4>
+                <ul class="space-y-2">
+                    <li><a href="aviso_legal.html" class="footer-link">Aviso Legal</a></li>
+                    <li><a href="politica_privacidad.html" class="footer-link">Política de Privacidad</a></li>
+                    <li><a href="contacto.html" class="footer-link">Contacto</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section footer-contact">
+                <h4 class="footer-title">Síguenos</h4>
+                <div class="flex space-x-4">
+                    <a href="#" class="footer-social-icon" title="Facebook">FB</a>
+                    <a href="#" class="footer-social-icon" title="Instagram">IG</a>
+                    <a href="#" class="footer-social-icon" title="Twitter/X">TW</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS de la lista de alquileres -->
+    <script src="JavaScript/misAlquileres.js"></script>
+</body>
+</html>

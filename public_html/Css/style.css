@@ -346,3 +346,279 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this t
 .footer-social-icon:hover {
     background-color: #374151; /* gray-700 */
 }
+
+/* ===================== ESTILOS ESPECÍFICOS PARA LOGIN ===================== */
+
+/* Fondo y centrado vertical de la página de login */
+.login-main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 1rem;
+    background-color: #f3f4f6; /* gris claro, similar a Tailwind gray-100 */
+}
+
+/* Limitar un poco el ancho del formulario dentro del container */
+.login-main .form-container {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Inputs de email y password con el mismo estilo que los text/number */
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    box-sizing: border-box;
+}
+
+/* Mensajes de error debajo de los campos */
+.error {
+    color: #dc2626; /* red-600 */
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.25rem;
+}
+
+/* Mensaje de error general del login */
+.error-general {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: #fef2f2; /* red-50 */
+    border: 1px solid #fecaca; /* red-200 */
+    color: #b91c1c; /* red-700 */
+    font-size: 0.875rem;
+}
+/* ================= VISTA AMPLIADA DE HABITACIÓN ================= */
+
+.room-detail-main {
+    background-color: #f3f4f6; /* gris claro */
+    padding: 2rem 1rem 3rem;
+}
+
+.room-detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.room-detail-title {
+    margin-bottom: 0; /* ya hay margen en el contenedor */
+}
+
+@media (min-width: 768px) {
+    .room-detail-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+/* Tarjeta principal */
+.room-detail-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .room-detail-card {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: flex-start;
+    }
+}
+
+.room-detail-info p {
+    margin-bottom: 0.5rem;
+    color: #374151; /* gray-700 */
+}
+
+.room-detail-info strong {
+    font-weight: 600;
+}
+
+/* Imagen */
+.room-detail-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.room-detail-image {
+    width: 100%;
+    max-width: 340px;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    background-color: #e5e7eb; /* gris como placeholder */
+}
+/* ======================= LISTA DE ALQUILERES ======================= */
+
+.rent-main {
+    background-color: #f3f4f6;  /* gris claro */
+    padding: 2rem 1rem 3rem;
+}
+
+.rent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Ajuste pequeño para reusar las tarjetas de solicitudes */
+.rent-list .solicitud-card {
+    cursor: pointer;
+}
+
+/* ======== CORRECCIÓN: UNIFICAR ESTILO DE LOS ENLACES DEL NAVBAR ======== */
+
+.nav-links a {
+    color: #d1d5db;              /* gris claro */
+    font-size: 0.875rem;         /* text-sm */
+    font-weight: 500;            /* font-medium */
+    padding: 0.5rem 0.75rem;     /* igual en todas las pantallas */
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.nav-links a:hover {
+    background-color: #374151;   /* gris más oscuro */
+    color: #ffffff;
+}
+
+/* Corregimos también el tamaño del usuario y logout */
+.user-actions span {
+    font-size: 0.875rem;         /* text-sm */
+    color: #d1d5db;
+}
+
+.logout-btn {
+    font-size: 0.875rem;         /* text-sm */
+}
+/* =================== BÚSQUEDA + LISTA DE HABITACIONES =================== */
+
+.search-main {
+    background-color: #f3f4f6;
+    padding: 2rem 1rem 3rem;
+}
+
+.search-filters {
+    margin-bottom: 1.5rem;
+}
+
+.room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Layout maestro-detalle */
+.room-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+    align-items: flex-start;
+}
+
+/* Panel detalle a la derecha */
+.room-detail-panel {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.room-detail-panel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+.room-detail-panel-image-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.room-detail-panel-image {
+    width: 100%;
+    max-width: 260px;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    background-color: #e5e7eb;
+}
+
+/* Difuminado cuando no hay login (se reutiliza clase) */
+.room-card-image-blurred {
+    filter: blur(3px);
+    opacity: 0.6;
+}
+
+.room-detail-panel-info p {
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.room-detail-panel-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+/* =================== BARRA DE BÚSQUEDA COMPACTA =================== */
+
+.search-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.search-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.search-field select,
+.search-field input[type="date"] {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.4rem;
+    background-color: #f9fafb;
+}
+
+.search-button {
+    height: 40px;
+    align-self: center;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+}
+
+
+
+
