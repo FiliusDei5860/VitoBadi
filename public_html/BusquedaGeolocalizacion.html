@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitoBadi - Búsqueda por Geolocalización</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/style.css">
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWfEboKAvFexFjk3QH7-fdBTO7jc4xHfo"></script>
+</head>
+<body class="bg-gray-100 font-sans"> 
+
+    <!--ésta sección de abajo es para insertar la navbar -->
+    <div id="navbar-placeholder"></div>
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
+        </main>
+    <script src="./JavaScript/load_components.js"></script>
+<!--ésta sección de arriba es para insertar la navbar -->
+
+
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <h2 class="main-title">Búsqueda por Geolocalización</h2>
+    <p class="subtitle-center mb-6">Encuentra habitaciones cercanas a tu ubicación o una dirección específica.</p>
+    
+    <div class="search-bar-container">
+        <div class="search-filter-group">
+            <label for="direccion" class="text-sm font-medium text-gray-700">Dirección:</label>
+            <input type="text" id="direccion" placeholder="Introduce una dirección" class="search-input">
+        </div>
+
+        <div class="search-filter-group slider-group">
+            <label for="radioBusqueda" class="text-sm font-medium text-gray-700 mb-2">Radio de Búsqueda: <span id="radioValue">2.5 KM</span></label>
+            <input type="range" id="radioBusqueda" min="0.1" max="5" value="2.5" step="0.1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>0.1 KM</span>
+                <span>5.0 KM</span>
+            </div>
+        </div>
+
+        <button id="getLocation" class="btn btn-primary search-button">Buscar / Usar mi Ubicación</button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        
+        <div class="md:col-span-2">
+            <div id="map" class="map-container"></div>
+        </div>
+        
+        <aside class="space-y-4">
+            <h3 class="text-lg font-bold text-gray-800 border-b pb-2">Resultados Cercanos</h3>
+            
+            <div id="results-list" class="space-y-4">
+                <div class="resultado-card">
+                    <div class="resultado-info-group">
+                        <div class="resultado-imagen-placeholder"></div>
+                        <div>
+                            <h4 class="text-sm font-semibold">Habitación Casco Viejo</h4>
+                            <p class="text-xs text-gray-500">[Dirección]</p>
+                            <p class="text-sm font-bold text-indigo-600">380 €</p>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+            
+            <p id="no-results" class="text-gray-500 italic hidden">No se encontraron resultados en este radio.</p>
+
+        </aside>
+    </div>
+</main>
+
+    <div id="footer-placeholder"></div>
+    <script src="js/load_components.js"></script>
+    <script src="JavaScript/ubicacion.js"></script> 
+    <!--ésta sección de abajo es para insertar el footer -->
+    <div id="footer-placeholder"></div>
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
+        </main>
+    <script src="./JavaScript/load_components.js"></script>
+<!--ésta sección de arriba es para insertar la navbar -->
+</body>
+</html>

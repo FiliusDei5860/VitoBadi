@@ -347,6 +347,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this t
     background-color: #374151; /* gray-700 */
 }
 
+<<<<<<< HEAD
 /* ===================== ESTILOS ESPECÍFICOS PARA LOGIN ===================== */
 
 /* Fondo y centrado vertical de la página de login */
@@ -622,3 +623,73 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this t
 
 
 
+/* ESTILOS ESPECÍFICOS DE BÚSQUEDA Y MAPA                                    */
+
+/* Contenedor de la barra de búsqueda (Flexbox para centrar elementos) */
+.search-bar-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se muevan a la siguiente línea en móvil */
+    gap: 1.5rem;
+    align-items: flex-end; /* Alinea items en la base */
+}
+
+.search-filter-group {
+    flex-grow: 1; /* Permite que el grupo crezca y ocupe espacio */
+    min-width: 180px; /* Ancho mínimo para que no se colapse */
+}
+
+.search-input {
+    /* Reutiliza el estilo base de los inputs del formulario */
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db; 
+    border-radius: 0.375rem; 
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.search-button {
+    /* Reutiliza el estilo base del botón primario */
+    height: 38px; /* Ajusta la altura para alinear con el input */
+}
+
+/* Estilos específicos para el control de radio (slider) */
+.slider-group {
+    max-width: 300px;
+}
+
+/* Contenedor del mapa */
+.map-container {
+    height: 500px; /* Altura fija para que el mapa se muestre */
+    width: 100%;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #e0e0e0; /* Fondo temporal mientras carga */
+}
+
+/* Estilos para las tarjetas de resultado (Columna derecha) */
+.resultado-card {
+    display: flex;
+    padding: 0.75rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+}
+
+.resultado-info-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.resultado-imagen-placeholder {
+    width: 4rem; /* h-16 */
+    height: 4rem; /* h-16 */
+    background-color: #d1d5db;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
