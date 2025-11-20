@@ -1,116 +1,132 @@
-// Mock de solicitudes sobre habitaciones del propietario
-
-let SOLICITUDES_PROPIETARIO = [
-    {
-        id: 1,
-        titulo: "Habitación luminosa",
-        direccion: "C/ Gorbea 12",
-        ciudad: "Vitoria-Gasteiz",
-        precio: 350,
-        imagen: "./Public_icons/hab1.png",
-        inquilino: "Ane Arrieta",
-        emailInquilino: "ane.arrieta@gmail.com",
-        fechaInicio: "2025-02-01",
-        fechaFin: "2025-06-30",
-        estado: "Pendiente"
-    },
-    {
-        id: 2,
-        titulo: "Habitación cerca de UPV/EHU",
-        direccion: "Gran Vía 25",
-        ciudad: "Bilbao",
-        precio: 420,
-        imagen: "./Public_icons/hab1.png",
-        inquilino: "Mikel Sarasola",
-        emailInquilino: "mikel.sarasola@gmail.com",
-        fechaInicio: "2025-03-15",
-        fechaFin: "2025-07-15",
-        estado: "Aceptada"
-    }
-];
+// JavaScript/solicitudesPropietario.js
+// Solicitudes recibidas POR el propietario actual (IndexedDB)
 
 document.addEventListener("DOMContentLoaded", () => {
-    const cont = document.getElementById("lista-solicitudes-prop");
-    const msg = document.getElementById("msg-no-solicitudes");
+    const cont = document.querySelector("main .space-y-4");
+    if (!cont) return;
 
-    function render() {
-        cont.innerHTML = "";
-
-        if (SOLICITUDES_PROPIETARIO.length === 0) {
-            msg.classList.remove("hidden");
-            return;
-        }
-        msg.classList.add("hidden");
-
-        SOLICITUDES_PROPIETARIO.forEach(sol => {
-            const card = document.createElement("div");
-            card.className = "solicitud-card";
-
-            const left = document.createElement("div");
-            left.className = "solicitud-info-group";
-
-            const img = document.createElement("div");
-            img.className = "solicitud-imagen-placeholder";
-            img.style.backgroundImage = `url('${sol.imagen}')`;
-            img.style.backgroundSize = "cover";
-
-            const text = document.createElement("div");
-            text.innerHTML = `
-                <h4 class="solicitud-titulo">${sol.titulo}</h4>
-                <p class="solicitud-secundario">${sol.direccion} – ${sol.ciudad}</p>
-                <p class="font-bold text-indigo-600">${sol.precio} €/mes</p>
-                <p class="text-xs mt-1"><strong>Inquilino:</strong> ${sol.inquilino}</p>
-                <p class="text-xs">${sol.fechaInicio} → ${sol.fechaFin}</p>
-            `;
-
-            left.appendChild(img);
-            left.appendChild(text);
-
-            const right = document.createElement("div");
-            right.className = "flex flex-col gap-2 min-w-[150px]";
-
-            const estadoBadge = document.createElement("span");
-            const estado = sol.estado;
-            const baseClasses = "px-3 py-1 rounded-full text-xs font-semibold text-center ";
-            if (estado === "Aceptada") {
-                estadoBadge.className = baseClasses + "bg-green-100 text-green-700";
-            } else if (estado === "Rechazada") {
-                estadoBadge.className = baseClasses + "bg-red-100 text-red-700";
-            } else {
-                estadoBadge.className = baseClasses + "bg-yellow-100 text-yellow-700";
-            }
-            estadoBadge.textContent = `Estado: ${estado}`;
-
-            const btnAceptar = document.createElement("button");
-            btnAceptar.className = "btn btn-primary";
-            btnAceptar.textContent = "Aceptar";
-            btnAceptar.disabled = estado !== "Pendiente";
-
-            btnAceptar.onclick = () => {
-                sol.estado = "Aceptada"; // US07
-                render();
-            };
-
-            const btnRechazar = document.createElement("button");
-            btnRechazar.className = "btn btn-secondary";
-            btnRechazar.textContent = "Rechazar";
-            btnRechazar.disabled = estado !== "Pendiente";
-
-            btnRechazar.onclick = () => {
-                sol.estado = "Rechazada"; // US07
-                render();
-            };
-
-            right.appendChild(estadoBadge);
-            right.appendChild(btnAceptar);
-            right.appendChild(btnRechazar);
-
-            card.appendChild(left);
-            card.appendChild(right);
-
-            cont.appendChild(card);
-        });
+    let usuarioActual = null;
+    try {
+        const stored = sessionStorage.getItem("usuarioActual");
+        if (stored) usuarioActual = JSON.parse(stored);
+    } catch (e) {
+        console.warn("No se ha podido leer usuarioActual:", e);
     }
 
-    render();
+    if (!usuarioActual || !usuarioActual.email) {
+        cont.innerHTML = "<p>Debes iniciar sesión para ver tus solicitudes.</p>";
+        return;
+    }
+
+    abrirBD()
+        .then(async (db) => {
+            const solicitudes = await cargarTodasSolicitudes(db);
+            if (!solicitudes || solicitudes.length === 0) {
+                cont.innerHTML = "<p>No tienes solicitudes pendientes.</p>";
+                return;
+            }
+
+            cont.innerHTML = "";
+
+            for (const sol of solicitudes) {
+                const hab  = await cargarHabitacion(db, sol.idHabitacion);
+                if (!hab || hab.emailPropietario !== usuarioActual.email) {
+                    continue;
+                }
+                const inquilino = await cargarUsuario(db, sol.emailInquilinoPosible);
+                crearCardSolicitudPropietario(cont, sol, hab, inquilino);
+            }
+
+            if (!cont.hasChildNodes()) {
+                cont.innerHTML = "<p>No tienes solicitudes pendientes.</p>";
+            }
+        })
+        .catch(err => {
+            console.error("Error abriendo BD en solicitudesPropietario:", err);
+            cont.innerHTML = "<p>Error al cargar las solicitudes.</p>";
+        });
 });
+
+function cargarTodasSolicitudes(db) {
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_SOLICITUD, "readonly");
+        const store = tx.objectStore(STORE_SOLICITUD);
+        const req   = store.getAll();
+
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror   = () => resolve([]);
+    });
+}
+
+function crearCardSolicitudPropietario(cont, sol, habitacion, inquilino) {
+    const card = document.createElement("article");
+    card.className = "solicitud-card";
+
+    const infoGroup = document.createElement("div");
+    infoGroup.className = "solicitud-info-group";
+
+    const imgDiv = document.createElement("div");
+    imgDiv.className = "solicitud-imagen-placeholder";
+
+    let src = null;
+    if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
+        src = habitacion.imagenes[0];
+    } else if (habitacion.imagen) {
+        src = habitacion.imagen;
+    }
+    if (src) {
+        imgDiv.style.backgroundImage = `url('${src}')`;
+        imgDiv.style.backgroundSize = "cover";
+        imgDiv.style.backgroundPosition = "center";
+    }
+
+    const textWrap = document.createElement("div");
+
+    const titulo = document.createElement("h3");
+    titulo.className = "solicitud-titulo";
+    const nombreInq = inquilino?.nombre || sol.emailInquilinoPosible || "Inquilino desconocido";
+    titulo.textContent = `Solicitud de ${nombreInq}`;
+
+    const secundario = document.createElement("p");
+    secundario.className = "solicitud-secundario";
+
+    const nombreHab = habitacion.titulo || habitacion.direccion || "Habitación";
+    const precio    = habitacion.precio != null ? habitacion.precio + " €" : "-";
+
+    secundario.textContent =
+        `Interesado en "${nombreHab}" | Precio: ${precio}`;
+
+    const fechaTxt = document.createElement("p");
+    fechaTxt.className = "text-xs text-gray-500 mt-1";
+    fechaTxt.textContent =
+        sol.fechaSolicitud ? `Recibida el ${sol.fechaSolicitud}` : "Fecha no especificada";
+
+    textWrap.appendChild(titulo);
+    textWrap.appendChild(secundario);
+    textWrap.appendChild(fechaTxt);
+
+    infoGroup.appendChild(imgDiv);
+    infoGroup.appendChild(textWrap);
+
+    const actions = document.createElement("div");
+    actions.className = "solicitud-actions";
+
+    const linkDetalle = document.createElement("a");
+    linkDetalle.href = `DetalleSolicitudPropietario.html?id=${sol.idSolicitud}`;
+    linkDetalle.className = "btn-icon";
+    linkDetalle.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <span class="sr-only">Ver Detalles</span>
+    `;
+
+    actions.appendChild(linkDetalle);
+
+    card.appendChild(infoGroup);
+    card.appendChild(actions);
+
+    cont.appendChild(card);
+}

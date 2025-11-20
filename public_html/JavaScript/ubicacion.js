@@ -1,195 +1,230 @@
-/* 
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/javascript.js to edit this template
- */
+// JavaScript/ubicacion.js
+// Búsqueda por geolocalización usando Google Maps + IndexedDB
+
 let map;
 let userMarker;
 let userCircle;
-let currentMarkers = []; // Almacena los marcadores de resultados para poder eliminarlos
-let userLocation = null; // Almacena la ubicación actual para re-búsquedas
+let currentMarkers = [];
+let userLocation = null;
+let habitacionesMapa = []; // vienen de IndexedDB
 
-// Marcadores de ejemplo (se mantiene el array de habitaciones)
-const mockHabitaciones = [
-    { lat: 42.8616922, lng: -2.7380206, name: "Aligobeo (Lejos)", precio: 500, direccion: "C/ Lejos 1" },
-    { lat: 42.8412704, lng: -2.6762743, name: "Parque de la Florida (Cerca)", precio: 380, direccion: "Pza. Nueva 2" },
-    { lat: 42.8403004, lng: -2.6845562, name: "Estadio de Mendizorrotza (Cerca)", precio: 450, direccion: "C/ Estadio 5" },
-    { lat: 42.8501865, lng: -2.6433496, name: "Elorriaga (Lejos)", precio: 600, direccion: "Paseo de la Montaña 8" }
-];
+document.addEventListener("DOMContentLoaded", () => {
+    const radioSlider   = document.getElementById("radioBusqueda");
+    const radioValue    = document.getElementById("radioValue");
+    const btnLocation   = document.getElementById("getLocation");
 
-// Función para inicializar/actualizar el mapa
+    if (radioSlider && radioValue) {
+        radioValue.textContent = radioSlider.value + " KM";
+        radioSlider.addEventListener("input", function () {
+            radioValue.textContent = this.value + " KM";
+            if (userLocation) {
+                const newKm = parseFloat(this.value);
+                initMap(userLocation.lat, userLocation.lng, newKm);
+            }
+        });
+    }
+
+    // Cargar habitaciones desde IndexedDB
+    abrirBD()
+        .then((db) => cargarHabitacionesMapa(db))
+        .catch(err => console.error("Error abriendo BD en ubicacion:", err));
+
+    if (btnLocation) {
+        btnLocation.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                alert("Geolocalización no soportada por este navegador.");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLocation = {
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude
+                    };
+                    const km = parseFloat(radioSlider?.value || "1");
+                    initMap(userLocation.lat, userLocation.lng, km);
+                },
+                (err) => {
+                    console.error("Error geolocalización:", err);
+                    alert("No se ha podido obtener tu ubicación.");
+                }
+            );
+        });
+    }
+});
+
+function cargarHabitacionesMapa(db) {
+    const tx    = db.transaction(STORE_HABITACION, "readonly");
+    const store = tx.objectStore(STORE_HABITACION);
+    const req   = store.getAll();
+
+    req.onsuccess = () => {
+        const todas = req.result || [];
+        habitacionesMapa = todas
+            .filter(h => h.latitud != null && h.longitud != null)
+            .map(h => ({
+                lat: h.latitud,
+                lng: h.longitud,
+                name: h.titulo || h.direccion || `Hab ${h.idHabitacion}`,
+                precio: h.precio,
+                direccion: h.direccion || "",
+                idHabitacion: h.idHabitacion
+            }));
+    };
+
+    req.onerror = (e) => {
+        console.error("Error leyendo habitaciones para mapa:", e.target.error);
+        habitacionesMapa = [];
+    };
+}
+
 function initMap(lat, lng, radiusKm) {
-    const radiusMeters = radiusKm * 1000;
-    userLocation = { lat, lng };
+    const radiusMeters = (radiusKm || 1) * 1000;
 
-    // 1. Inicializar el mapa si no existe
     if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
-            center: userLocation,
-            zoom: 14,
+            center: { lat, lng },
+            zoom: 14
         });
     } else {
-        // Mover el centro si el mapa ya existe (re-búsqueda)
-        map.setCenter(userLocation);
+        map.setCenter({ lat, lng });
         map.setZoom(14);
     }
-    
-    // 2. Actualizar o crear el marcador del usuario
+
+    // Marcador usuario
     if (!userMarker) {
         userMarker = new google.maps.Marker({
-            position: userLocation,
-            map: map,
+            position: { lat, lng },
+            map,
             title: "Tu ubicación",
             icon: {
-                url: "http://googlemaps.google.com/mapfiles/ms/icons/blue-dot.png", // Ícono más claro
-            },
+                url: "http://googlemaps.google.com/mapfiles/ms/icons/blue-dot.png"
+            }
         });
     } else {
-        userMarker.setPosition(userLocation);
+        userMarker.setPosition({ lat, lng });
     }
 
-    // 3. Actualizar o crear el círculo de radio
+    // Círculo
     if (!userCircle) {
         userCircle = new google.maps.Circle({
-            map: map,
-            fillColor: "#4f46e5", // Color Índigo de Tailwind
+            map,
+            fillColor: "#4f46e5",
             fillOpacity: 0.2,
             strokeColor: "#4f46e5",
             strokeOpacity: 0.8,
-            strokeWeight: 2,
+            strokeWeight: 2
         });
     }
-    userCircle.setCenter(userLocation);
-    userCircle.setRadius(radiusMeters); // Actualizar radio en metros
+    userCircle.setCenter({ lat, lng });
+    userCircle.setRadius(radiusMeters);
 
-    // 4. Mostrar y listar los marcadores dentro del radio
-    showMarkersInRadius(userLocation, radiusMeters);
+    showMarkersInRadius({ lat, lng }, radiusMeters);
 }
 
-// Limpia los marcadores anteriores
-function clearMarkers() {
-    currentMarkers.forEach(marker => marker.setMap(null));
-    currentMarkers = [];
-}
-
-// Calcular distancia entre dos coordenadas (Función Haversine se mantiene)
-function calculateDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371e3; 
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-
-    const a =
-        Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // Distancia en metros
-}
-
-// Mostrar marcadores en el mapa y en la lista de resultados
-function showMarkersInRadius(userLocation, radiusMeters) {
-    clearMarkers();
-    const resultsContainer = document.getElementById("results-list"); // Asumimos un ID en el contenedor de resultados
+function showMarkersInRadius(center, radiusMeters) {
+    const resultsContainer = document.getElementById("results-list");
     const noResultsMessage = document.getElementById("no-results");
-    
-    // Limpiar resultados anteriores
-    resultsContainer.innerHTML = '';
+
+    // Limpiar marcadores antiguos
+    currentMarkers.forEach(m => m.setMap(null));
+    currentMarkers = [];
+
+    // Limpiar lista
+    if (resultsContainer) {
+        resultsContainer.innerHTML = "";
+    }
+
     let foundCount = 0;
 
-    mockHabitaciones.forEach((habitacion) => {
-        const distance = calculateDistance(
-            userLocation.lat,
-            userLocation.lng,
-            habitacion.lat,
-            habitacion.lng
+    habitacionesMapa.forEach(h => {
+        const distance = haversineDistance(
+            center.lat, center.lng,
+            h.lat, h.lng
         );
 
         if (distance <= radiusMeters) {
             foundCount++;
-            
-            // 1. Agregar Marcador al Mapa
-            const newMarker = new google.maps.Marker({
-                position: { lat: habitacion.lat, lng: habitacion.lng },
-                map: map,
-                title: habitacion.name,
-                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+
+            const marker = new google.maps.Marker({
+                position: { lat: h.lat, lng: h.lng },
+                map,
+                title: h.name,
+                icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
             });
-            currentMarkers.push(newMarker);
-            
-            // 2. Agregar resultado a la Lista
-            const resultCard = createResultCard(habitacion);
-            resultsContainer.appendChild(resultCard);
-        }
-    });
-    
-    // Mostrar u ocultar el mensaje de no resultados
-    if (foundCount === 0) {
-        noResultsMessage.classList.remove('hidden');
-    } else {
-        noResultsMessage.classList.add('hidden');
-    }
-}
+            currentMarkers.push(marker);
 
-// Crea el HTML de la tarjeta de resultado
-function createResultCard(habitacion) {
-    const div = document.createElement('div');
-    // Usamos las clases de estilo que definimos en style.css y Tailwind
-    div.className = 'resultado-card mb-4 cursor-pointer hover:bg-gray-50'; 
-    div.innerHTML = `
-        <div class="resultado-info-group">
-            <div class="resultado-imagen-placeholder"></div>
-            <div>
-                <h4 class="text-sm font-semibold">${habitacion.name}</h4>
-                <p class="text-xs text-gray-500">${habitacion.direccion}</p>
-                <p class="text-sm font-bold text-indigo-600">${habitacion.precio} €</p>
-            </div>
-        </div>
-    `;
-    return div;
-}
-
-// =========================================================
-// GESTIÓN DE EVENTOS (Adaptado a tu HTML: BusquedaGeolocalizacion.html)
-// =========================================================
-
-// Dispara la búsqueda al hacer clic en el botón
-document.getElementById("getLocation").addEventListener("click", () => {
-    // 1. Obtener radio actual del slider (en KM)
-    const radiusKm = parseFloat(document.getElementById("radioBusqueda").value);
-
-    // 2. Obtener ubicación (simulación con geolocalización)
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                // Iniciar/Actualizar mapa con la ubicación del usuario y el radio
-                initMap(latitude, longitude, radiusKm);
-            },
-            (error) => {
-                alert("Error al obtener la ubicación: " + error.message);
+            if (resultsContainer) {
+                const card = createResultCard(h);
+                resultsContainer.appendChild(card);
             }
-        );
-    } else {
-        alert("Geolocalización no soportada por este navegador.");
-    }
-});
-
-// Actualiza el texto del radio al mover el slider
-document.addEventListener('DOMContentLoaded', () => {
-    const radioSlider = document.getElementById('radioBusqueda');
-    const radioValueSpan = document.getElementById('radioValue');
-
-    // Muestra el valor inicial
-    radioValueSpan.textContent = radioSlider.value + ' KM';
-    
-    radioSlider.addEventListener('input', function() {
-        radioValueSpan.textContent = this.value + ' KM';
-        
-        // Opcional: Re-buscar si la ubicación ya se conoce y el radio cambia
-        if (userLocation) {
-            const newRadiusKm = parseFloat(this.value);
-            initMap(userLocation.lat, userLocation.lng, newRadiusKm);
         }
     });
-});
+
+    if (noResultsMessage) {
+        if (foundCount === 0) {
+            noResultsMessage.classList.remove("hidden");
+        } else {
+            noResultsMessage.classList.add("hidden");
+        }
+    }
+}
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+    function toRad(x) {
+        return x * Math.PI / 180;
+    }
+
+    const R = 6371000; // metros
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function createResultCard(h) {
+    const card = document.createElement("div");
+    card.className = "resultado-card";
+
+    const infoGroup = document.createElement("div");
+    infoGroup.className = "resultado-info-group";
+
+    const imgDiv = document.createElement("div");
+    imgDiv.className = "resultado-imagen-placeholder";
+
+    const textWrap = document.createElement("div");
+
+    const titulo = document.createElement("h4");
+    titulo.className = "text-sm font-semibold";
+    titulo.textContent = h.name;
+
+    const direccion = document.createElement("p");
+    direccion.className = "text-xs text-gray-500";
+    direccion.textContent = h.direccion || "[Dirección no disponible]";
+
+    const precio = document.createElement("p");
+    precio.className = "text-sm font-bold text-indigo-600";
+    precio.textContent =
+        h.precio != null ? `${h.precio} €` : "Precio no disponible";
+
+    textWrap.appendChild(titulo);
+    textWrap.appendChild(direccion);
+    textWrap.appendChild(precio);
+
+    infoGroup.appendChild(imgDiv);
+    infoGroup.appendChild(textWrap);
+
+    card.appendChild(infoGroup);
+
+    card.addEventListener("click", () => {
+        if (h.idHabitacion != null) {
+            window.location.href = `DetalleHabitacion.html?id=${h.idHabitacion}`;
+        }
+    });
+
+    return card;
+}

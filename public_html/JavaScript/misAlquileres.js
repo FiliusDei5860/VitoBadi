@@ -1,135 +1,156 @@
 // JavaScript/misAlquileres.js
-// Lista de alquileres (propietario) usando datos MOCK
-
-// Habitaciones de ejemplo (igual estilo que en detalleHabitacion)
-const HABITACIONES_MOCK = [
-    {
-        idHabi: 1,
-        direccion: "C/ Gorbea 12, 3ºA",
-        ciudad: "Vitoria-Gasteiz",
-        precio: 350,
-        latitud: 42.846,
-        longitud: -2.672,
-        estado: "Disponible",
-        imagen: "./Public_icons/hab1.png"
-    },
-    {
-        idHabi: 2,
-        direccion: "Gran Vía 25, 2ºD",
-        ciudad: "Bilbao",
-        precio: 420,
-        latitud: 43.262,
-        longitud: -2.935,
-        estado: "Ocupada",
-        imagen: "./Public_icons/hab1.png" // de momento reutilizamos la misma imagen
-    }
-];
-
-// Usuarios inquilinos de ejemplo (pueden ser los mismos que en login)
-const USUARIOS_MOCK = [
-    { email: "ane.arrieta@gmail.com",   nombre: "Ane Arrieta" },
-    { email: "mikel.sarasola@gmail.com",nombre: "Mikel Sarasola" }
-];
-
-// Alquileres de ejemplo (tu modelo: idContrato, idHabi, emailInquilino, fechaInicioAlquiler, fechaFinAlquiler)
-const ALQUILERES_MOCK = [
-    {
-        idContrato: 1,
-        idHabi: 1,
-        emailInquilino: "ane.arrieta@gmail.com",
-        fechaInicio: "2025-01-01",
-        fechaFin:    "2025-06-30"
-    },
-    {
-        idContrato: 2,
-        idHabi: 2,
-        emailInquilino: "mikel.sarasola@gmail.com",
-        fechaInicio: "2025-03-15",
-        fechaFin:    "2025-09-15"
-    }
-];
+// Lista de alquileres donde el usuario actual participa (como propietario o inquilino)
 
 document.addEventListener("DOMContentLoaded", () => {
     const contenedor = document.getElementById("lista-alquileres");
     if (!contenedor) return;
 
-    if (ALQUILERES_MOCK.length === 0) {
-        const p = document.createElement("p");
-        p.textContent = "No tienes alquileres registrados.";
-        contenedor.appendChild(p);
+    let usuarioActual = null;
+
+    // Leer usuario logeado
+    try {
+        const stored = sessionStorage.getItem("usuarioActual");
+        if (stored) {
+            usuarioActual = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.warn("No se ha podido leer usuarioActual:", e);
+    }
+
+    if (!usuarioActual || !usuarioActual.email) {
+        contenedor.innerHTML = "<p>Debes iniciar sesión para ver tus alquileres.</p>";
         return;
     }
 
-    ALQUILERES_MOCK.forEach((alquiler) => {
-        const habitacion = HABITACIONES_MOCK.find(h => h.idHabi === alquiler.idHabi) || null;
-        const inquilino  = USUARIOS_MOCK.find(u => u.email === alquiler.emailInquilino) || null;
+    (async () => {
+        try {
+            const db = await abrirBD();
 
-        // Tarjeta reutilizando estilos de solicitudes
-        const card = document.createElement("article");
-        card.className = "solicitud-card";
+            const [alquileres, habitaciones, usuarios] = await Promise.all([
+                getAllFromStore(db, STORE_ALQUILER),
+                getAllFromStore(db, STORE_HABITACION),
+                getAllFromStore(db, STORE_USUARIO)
+            ]);
 
-        const infoGroup = document.createElement("div");
-        infoGroup.className = "solicitud-info-group";
+            const mapaHab = new Map(habitaciones.map(h => [h.idHabitacion, h]));
+            const mapaUsr = new Map(usuarios.map(u => [u.email, u]));
 
-        // Imagen/placeholder
-        const imgPlaceholder = document.createElement("div");
-        imgPlaceholder.className = "solicitud-imagen-placeholder";
+            const hoyISO = new Date().toISOString().slice(0, 10);
 
-        if (habitacion && habitacion.imagen) {
-            imgPlaceholder.style.backgroundImage = `url('${habitacion.imagen}')`;
-            imgPlaceholder.style.backgroundSize = "cover";
-            imgPlaceholder.style.backgroundPosition = "center";
+            // Filtrar alquileres donde el usuario es propietario o inquilino
+            const alquileresUsuario = alquileres.filter(a => {
+                const hab = mapaHab.get(a.idHabitacion);
+                if (!hab) return false;
+                const soyInquilino   = a.emailInquilino === usuarioActual.email;
+                const soyPropietario = hab.emailPropietario === usuarioActual.email;
+                return soyInquilino || soyPropietario;
+            });
+
+            contenedor.innerHTML = "";
+
+            if (alquileresUsuario.length === 0) {
+                contenedor.innerHTML = "<p>No tienes alquileres registrados.</p>";
+                return;
+            }
+
+            alquileresUsuario.forEach(a => {
+                const hab = mapaHab.get(a.idHabitacion);
+                const inq = mapaUsr.get(a.emailInquilino);
+
+                const soyInquilino   = a.emailInquilino === usuarioActual.email;
+                const soyPropietario = hab && hab.emailPropietario === usuarioActual.email;
+
+                const card = document.createElement("article");
+                card.className = "solicitud-card";
+
+                const infoGroup = document.createElement("div");
+                infoGroup.className = "solicitud-info-group";
+
+                const imgDiv = document.createElement("div");
+                imgDiv.className = "solicitud-imagen-placeholder";
+
+                let imgSrc = null;
+                if (hab) {
+                    if (Array.isArray(hab.imagenes) && hab.imagenes.length > 0) {
+                        imgSrc = hab.imagenes[0];
+                    } else if (hab.imagen) {
+                        imgSrc = hab.imagen;
+                    }
+                }
+                if (imgSrc) {
+                    imgDiv.style.backgroundImage = `url('${imgSrc}')`;
+                    imgDiv.style.backgroundSize = "cover";
+                    imgDiv.style.backgroundPosition = "center";
+                }
+
+                const textWrap = document.createElement("div");
+
+                const titulo = document.createElement("h3");
+                titulo.className = "solicitud-titulo";
+                titulo.textContent = hab
+                    ? (hab.direccion || "Habitación")
+                    : "Habitación desconocida";
+
+                const p1 = document.createElement("p");
+                p1.className = "solicitud-secundario";
+
+                const ciudadTxt = hab?.ciudad || "-";
+                const precioTxt = hab?.precio != null ? hab.precio + " €/mes" : "-";
+                const fIni      = a.fechaInicioAlquiler || "-";
+                const fFin      = a.fechaFinAlquiler   || "-";
+
+                p1.textContent = `${ciudadTxt} · ${precioTxt} · ${fIni} → ${fFin}`;
+
+                const p2 = document.createElement("p");
+                p2.className = "solicitud-secundario";
+
+                let rolTxt = "";
+                if (soyPropietario && soyInquilino) {
+                    rolTxt = "Tú eres propietario e inquilino (caso raro).";
+                } else if (soyPropietario) {
+                    rolTxt = `Inquilino: ${inq?.nombre || a.emailInquilino}`;
+                } else if (soyInquilino) {
+                    rolTxt = `Propietario: ${hab?.emailPropietario || "-"}`;
+                }
+
+                const estadoTxt = (a.fechaFinAlquiler && a.fechaFinAlquiler < hoyISO)
+                    ? "Histórico"
+                    : "Activo";
+
+                p2.textContent = `${rolTxt} · Estado: ${estadoTxt}`;
+
+                textWrap.appendChild(titulo);
+                textWrap.appendChild(p1);
+                textWrap.appendChild(p2);
+
+                infoGroup.appendChild(imgDiv);
+                infoGroup.appendChild(textWrap);
+
+                card.appendChild(infoGroup);
+
+                // Enlace a detalle
+                card.addEventListener("click", () => {
+                    window.location.href = `DetalleAlquiler.html?id=${a.idContrato}`;
+                });
+
+                contenedor.appendChild(card);
+            });
+
+        } catch (err) {
+            console.error("Error en misAlquileres:", err);
+            contenedor.innerHTML = "<p>Se ha producido un error al cargar tus alquileres.</p>";
         }
-
-        // Texto principal
-        const textWrapper = document.createElement("div");
-
-        const titulo = document.createElement("h3");
-        titulo.className = "solicitud-titulo";
-
-        if (habitacion) {
-            titulo.textContent = habitacion.direccion;
-        } else {
-            titulo.textContent = `Alquiler ${alquiler.idContrato}`;
-        }
-
-        const secundario = document.createElement("p");
-        secundario.className = "solicitud-secundario";
-
-        const ciudad  = habitacion ? habitacion.ciudad : "-";
-        const precio  = habitacion ? `${habitacion.precio} €/mes` : "-";
-        const nombreInq = inquilino ? inquilino.nombre : alquiler.emailInquilino;
-
-        secundario.textContent =
-            `${ciudad} · ${precio} · ${alquiler.fechaInicio} → ${alquiler.fechaFin} · Inquilino: ${nombreInq}`;
-
-        textWrapper.appendChild(titulo);
-        textWrapper.appendChild(secundario);
-
-        infoGroup.appendChild(imgPlaceholder);
-        infoGroup.appendChild(textWrapper);
-
-        // Botón/ícono de ver detalle
-        const btnVer = document.createElement("button");
-        btnVer.type = "button";
-        btnVer.className = "btn-icon";
-        btnVer.title = "Ver detalle del alquiler";
-        btnVer.textContent = "🔍";
-
-        btnVer.addEventListener("click", (e) => {
-            e.stopPropagation();
-            // Más adelante crearemos DetalleAlquiler.html y usaremos este id
-            window.location.href = `DetalleAlquiler.html?id=${alquiler.idContrato}`;
-        });
-
-        // También podemos hacer que toda la tarjeta sea clicable
-        card.addEventListener("click", () => {
-            window.location.href = `DetalleAlquiler.html?id=${alquiler.idContrato}`;
-        });
-
-        card.appendChild(infoGroup);
-        card.appendChild(btnVer);
-
-        contenedor.appendChild(card);
-    });
+    })();
 });
+
+// Auxiliar: leer todos los registros de un store
+function getAllFromStore(db, storeName) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const st = tx.objectStore(storeName);
+        const req = st.getAll();
+
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror   = () => reject(req.error);
+    });
+}

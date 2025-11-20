@@ -1,8 +1,7 @@
 // JavaScript/listaHabitaciones.js
-// Lista de habitaciones + panel detalle, usando IndexedDB
+// Lista de habitaciones reales (IndexedDB) + panel detalle + filtros ciudad/fecha
 
 document.addEventListener("DOMContentLoaded", () => {
-    const ESTA_LOGEADO = !!sessionStorage.getItem("usuarioActual");
 
     const listaHabitaciones = document.getElementById("lista-habitaciones");
     const selectCiudad      = document.getElementById("filtro-ciudad");
@@ -20,65 +19,106 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!listaHabitaciones) return;
 
-    let HABITACIONES_CACHE = [];
+    let dbGlobal = null;
+    let habitacionesCache = [];
+    let usuarioActual = null;
+    let estaLogeado = false;
 
-    // -----------------------------------------
-    // Mostrar detalle en el panel derecho
-    // -----------------------------------------
-    function mostrarDetalle(habitacion) {
-        if (!habitacion) {
-            detDir.textContent    = "Selecciona una habitación en la lista.";
-            detCiudad.textContent = "-";
-            detPrecio.textContent = "-";
-            detLat.textContent    = "-";
-            detLong.textContent   = "-";
-
-            if (detImg) {
-                detImg.removeAttribute("src");
-                detImg.style.display = "none";
-            }
-
-            btnSolicitar.textContent = "Selecciona una habitación";
-            btnSolicitar.disabled    = true;
-            btnSolicitar.onclick     = null;
-            return;
+    // =========================
+    //  Leer usuario logeado
+    // =========================
+    try {
+        const stored = sessionStorage.getItem("usuarioActual");
+        if (stored) {
+            usuarioActual = JSON.parse(stored);
+            estaLogeado = !!usuarioActual?.email;
         }
-
-        detDir.textContent    = habitacion.direccion || "";
-        detCiudad.textContent = habitacion.ciudad    || "-";
-        detPrecio.textContent = (habitacion.precio != null ? habitacion.precio + " €/mes" : "-");
-        detLat.textContent    = habitacion.latitud  ?? "-";
-        detLong.textContent   = habitacion.longitud ?? "-";
-
-        if (detImg) {
-            if (habitacion.imagen) {
-                detImg.src = habitacion.imagen;
-                detImg.style.display = "block";
-            } else {
-                detImg.removeAttribute("src");
-                detImg.style.display = "none";
-            }
-            detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
-        }
-
-        btnSolicitar.disabled = false;
-
-        if (ESTA_LOGEADO) {
-            btnSolicitar.textContent = "Solicitar";
-            btnSolicitar.onclick = () => {
-                alert("Solicitud enviada (simulada). Más adelante se guardará en la BD.");
-            };
-        } else {
-            btnSolicitar.textContent = "Login para solicitar";
-            btnSolicitar.onclick = () => {
-                window.location.href = "Login.html";
-            };
-        }
+    } catch (e) {
+        console.warn("No se ha podido leer usuarioActual de sessionStorage:", e);
     }
 
-    // -----------------------------------------
-    // Pintar tarjetas en la lista
-    // -----------------------------------------
+    // =========================
+    //  Abrir BD e inicializar
+    // =========================
+    abrirBD()
+        .then(db => {
+            dbGlobal = db;
+            console.log("BD lista en ListaHabitaciones:", db.name);
+
+            // Leer filtros de la URL (si venimos de Busqueda.html)
+            const params = new URLSearchParams(window.location.search);
+            const ciudadInicial = params.get("ciudad") || "";
+            const fechaInicial  = params.get("fecha") || "";
+
+            if (ciudadInicial && selectCiudad) {
+                selectCiudad.value = ciudadInicial;
+            }
+            if (fechaInicial && inputFecha) {
+                inputFecha.value = fechaInicial;
+            }
+
+            // Cargar TODAS las habitaciones desde BD y guardar en cache
+            cargarHabitacionesDesdeBD().then(() => {
+                aplicarFiltrosYRedibujar();
+            });
+        })
+        .catch(err => {
+            console.error("Error abriendo BD en ListaHabitaciones:", err);
+        });
+
+    // =========================
+    //  Leer habitaciones desde IndexedDB
+    // =========================
+    function cargarHabitacionesDesdeBD() {
+        return new Promise((resolve, reject) => {
+            const tx    = dbGlobal.transaction(STORE_HABITACION, "readonly");
+            const store = tx.objectStore(STORE_HABITACION);
+            const req   = store.getAll();
+
+            req.onsuccess = () => {
+                habitacionesCache = req.result || [];
+                resolve();
+            };
+
+            req.onerror = (e) => {
+                console.error("Error leyendo habitaciones:", e.target.error);
+                habitacionesCache = [];
+                resolve(); // no rompas la página, solo no hay datos
+            };
+        });
+    }
+
+    // =========================
+    //  Aplicar filtros
+    // =========================
+    function aplicarFiltrosYRedibujar() {
+        const ciudad = selectCiudad ? selectCiudad.value : "";
+        const fecha  = inputFecha   ? inputFecha.value   : "";
+
+        let resultado = habitacionesCache.slice();
+
+        if (ciudad) {
+            resultado = resultado.filter(h => h.ciudad === ciudad);
+        }
+
+        if (fecha) {
+            // disponibleDesde puede ser "", null o "YYYY-MM-DD"
+            resultado = resultado.filter(h => {
+                if (!h.disponibleDesde || h.disponibleDesde === "") {
+                    // Si no se ha establecido fecha de disponibilidad,
+                    // la consideramos disponible siempre
+                    return true;
+                }
+                return h.disponibleDesde <= fecha;
+            });
+        }
+
+        pintarHabitaciones(resultado);
+    }
+
+    // =========================
+    //  Pintar lista de tarjetas
+    // =========================
     function pintarHabitaciones(habitaciones) {
         listaHabitaciones.innerHTML = "";
 
@@ -97,21 +137,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const infoGroup = document.createElement("div");
             infoGroup.className = "solicitud-info-group";
 
-            // Imagen de la tarjeta (solo si hay imagen)
+            // Imagen / placeholder
             const imgPlaceholder = document.createElement("div");
             imgPlaceholder.className = "solicitud-imagen-placeholder";
 
-            if (habitacion.imagen) {
-                imgPlaceholder.style.backgroundImage = `url('${habitacion.imagen}')`;
-                imgPlaceholder.style.backgroundSize = "cover";
-                imgPlaceholder.style.backgroundPosition = "center";
-
-                if (!ESTA_LOGEADO) {
-                    imgPlaceholder.classList.add("room-card-image-blurred");
-                }
+            let src = null;
+            if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
+                src = habitacion.imagenes[0];
+            } else if (habitacion.imagen) {
+                src = habitacion.imagen;
             }
 
-            // Texto
+            if (src) {
+                imgPlaceholder.style.backgroundImage = `url('${src}')`;
+                imgPlaceholder.style.backgroundSize = "cover";
+                imgPlaceholder.style.backgroundPosition = "center";
+            }
+
+            // Si NO está logeado, difuminamos la imagen
+            if (!estaLogeado) {
+                imgPlaceholder.classList.add("room-card-image-blurred");
+            }
+
+            // Texto principal
             const textWrapper = document.createElement("div");
 
             const titulo = document.createElement("h3");
@@ -121,12 +169,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const secundario = document.createElement("p");
             secundario.className = "solicitud-secundario";
 
-            const ciudadTxt   = habitacion.ciudad || "-";
-            const precioTxt   = (habitacion.precio != null ? habitacion.precio + " €/mes" : "-");
-            const fechaTxt    = habitacion.disponibleDesde || "";
+            const ciudadTxt = habitacion.ciudad || "-";
+            const precioTxt = (habitacion.precio != null)
+                ? habitacion.precio + " €/mes"
+                : "-";
 
-            secundario.textContent =
-                `${ciudadTxt} · ${precioTxt}${fechaTxt ? " · Disponible desde " + fechaTxt : ""}`;
+            let fechaTxt = "";
+            if (habitacion.disponibleDesde) {
+                fechaTxt = " · Disponible desde " + habitacion.disponibleDesde;
+            }
+
+            secundario.textContent = `${ciudadTxt} · ${precioTxt}${fechaTxt}`;
 
             textWrapper.appendChild(titulo);
             textWrapper.appendChild(secundario);
@@ -136,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             card.appendChild(infoGroup);
 
-            // Evento: al clicar, mostrar detalle
+            // Al hacer click → mostrar detalle en panel derecho
             card.addEventListener("click", () => {
                 mostrarDetalle(habitacion);
             });
@@ -144,66 +197,124 @@ document.addEventListener("DOMContentLoaded", () => {
             listaHabitaciones.appendChild(card);
         });
 
-        // Seleccionar la primera habitación por defecto
+        // Seleccionar la primera por defecto
         mostrarDetalle(habitaciones[0]);
     }
 
-    // -----------------------------------------
-    // Filtro
-    // -----------------------------------------
-    function filtrarHabitaciones() {
-        const ciudad = selectCiudad?.value || "";
-        const fecha  = inputFecha?.value   || "";  // "" o YYYY-MM-DD
+    // =========================
+    //  Mostrar detalle en el panel derecho
+    // =========================
+    function mostrarDetalle(habitacion) {
+        if (!detDir || !detCiudad || !detPrecio || !detLat || !detLong || !detImg || !btnSolicitar) return;
 
-        let resultado = HABITACIONES_CACHE.slice();
+        if (!habitacion) {
+            detDir.textContent    = "Selecciona una habitación en la lista.";
+            detCiudad.textContent = "-";
+            detPrecio.textContent = "-";
+            detLat.textContent    = "-";
+            detLong.textContent   = "-";
+            detImg.src            = "./Public_icons/hab1.png";
+            detImg.classList.toggle("room-card-image-blurred", !estaLogeado);
 
-        if (ciudad) {
-            resultado = resultado.filter(h => h.ciudad === ciudad);
+            btnSolicitar.textContent = "Selecciona una habitación";
+            btnSolicitar.disabled    = true;
+            btnSolicitar.onclick     = null;
+            return;
         }
 
-        if (fecha) {
-            resultado = resultado.filter(h => !h.disponibleDesde || h.disponibleDesde <= fecha);
+        detDir.textContent    = habitacion.direccion || "";
+        detCiudad.textContent = habitacion.ciudad || "-";
+        detPrecio.textContent = (habitacion.precio != null)
+            ? habitacion.precio + " €/mes"
+            : "-";
+        detLat.textContent    = habitacion.latitud  ?? "-";
+        detLong.textContent   = habitacion.longitud ?? "-";
+
+        let src = null;
+        if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
+            src = habitacion.imagenes[0];
+        } else if (habitacion.imagen) {
+            src = habitacion.imagen;
         }
 
-        pintarHabitaciones(resultado);
+        if (src) {
+            detImg.src = src;
+        } else {
+            detImg.src = "./Public_icons/hab1.png";
+        }
+
+        detImg.classList.toggle("room-card-image-blurred", !estaLogeado);
+
+        // Configurar botón Solicitar según login
+        btnSolicitar.disabled = false;
+
+        if (!estaLogeado) {
+            btnSolicitar.textContent = "Login para solicitar";
+            btnSolicitar.onclick = () => {
+                window.location.href = "login.html";
+            };
+        } else {
+            btnSolicitar.textContent = "Solicitar";
+            btnSolicitar.onclick = () => {
+                crearSolicitudParaHabitacion(habitacion);
+            };
+        }
     }
 
-    // -----------------------------------------
-    // Cargar datos desde IndexedDB
-    // -----------------------------------------
-    function cargarHabitacionesDesdeBD() {
-        abrirBD()
-            .then(db => {
-                const tx    = db.transaction(STORE_HABITACION, "readonly");
-                const store = tx.objectStore(STORE_HABITACION);
-                const req   = store.getAll();
+    // =========================
+    //  Crear solicitud en BD (opcional pero útil)
+    // =========================
+    function crearSolicitudParaHabitacion(habitacion) {
+        if (!dbGlobal || !usuarioActual) {
+            alert("Debes iniciar sesión para solicitar una habitación.");
+            return;
+        }
 
-                req.onsuccess = () => {
-                    HABITACIONES_CACHE = req.result || [];
-                    if (HABITACIONES_CACHE.length === 0) {
-                        listaHabitaciones.innerHTML = "<p>No hay habitaciones registradas.</p>";
-                        mostrarDetalle(null);
-                        return;
-                    }
-                    pintarHabitaciones(HABITACIONES_CACHE);
-                };
+        const txSol   = dbGlobal.transaction(STORE_SOLICITUD, "readwrite");
+        const store   = txSol.objectStore(STORE_SOLICITUD);
+        const getAll  = store.getAll();
 
-                req.onerror = () => {
-                    console.error("Error leyendo habitaciones de IndexedDB:", req.error);
-                    listaHabitaciones.innerHTML = "<p>Error cargando habitaciones.</p>";
-                };
-            })
-            .catch(err => {
-                console.error("Error abriendo BD en listaHabitaciones:", err);
-                listaHabitaciones.innerHTML = "<p>Error abriendo la base de datos.</p>";
-            });
+        getAll.onsuccess = () => {
+            const todas = getAll.result || [];
+            let nuevoId = 1;
+            if (todas.length > 0) {
+                nuevoId = Math.max(...todas.map(s => s.idSolicitud || 0)) + 1;
+            }
+
+            const hoy = new Date().toISOString().slice(0, 10);
+
+            const nuevaSolicitud = {
+                idSolicitud: nuevoId,
+                idHabitacion: habitacion.idHabitacion,
+                emailInquilinoPosible: usuarioActual.email,
+                mensaje: "",
+                fechas: "",
+                fechaSolicitud: hoy,
+                estado: "Pendiente"
+            };
+
+            const addReq = store.add(nuevaSolicitud);
+
+            addReq.onsuccess = () => {
+                alert("Solicitud registrada correctamente.");
+            };
+
+            addReq.onerror = (e) => {
+                console.error("Error guardando solicitud:", e.target.error);
+                alert("Error al registrar la solicitud.");
+            };
+        };
+
+        getAll.onerror = (e) => {
+            console.error("Error leyendo solicitudes para calcular nuevo id:", e.target.error);
+            alert("No se ha podido registrar la solicitud.");
+        };
     }
 
-    // Eventos
+    // =========================
+    //  Evento botón Buscar
+    // =========================
     if (btnBuscar) {
-        btnBuscar.addEventListener("click", filtrarHabitaciones);
+        btnBuscar.addEventListener("click", aplicarFiltrosYRedibujar);
     }
-
-    // Cargar habitaciones al inicio
-    cargarHabitacionesDesdeBD();
 });
