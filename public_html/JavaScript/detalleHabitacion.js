@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Error leyendo habitación:", req.error);
                 if (spanDireccion) spanDireccion.textContent = "Error cargando la habitación.";
             };
-        })
+        })//mco
         .catch(err => {
             console.error("Error abriendo BD en detalleHabitacion:", err);
             if (spanDireccion) spanDireccion.textContent = "Error abriendo la base de datos.";
