@@ -25,7 +25,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
         <h2 class="main-title">Actualizar Datos de Habitación</h2>
         <p class="subtitle-center text-gray-600 mb-6">Completa los datos que quieras cambiar.</p>
         
-        <form id="create-room-form" action="/habitacion/crear" method="POST" enctype="multipart/form-data" class="form-container">
+            <form id="update-room-form" action="/habitacion/actualizar" method="POST" enctype="multipart/form-data" class="form-container">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
@@ -82,11 +82,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
 
         </form>
     </main>
-<!--ésta sección de abajo es para insertar el footer -->
+    <!-- sección de abajo es para insertar el footer -->
     <div id="footer-placeholder"></div>
     <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
-        </main>
-    <script src="./JavaScript/load_components.js"></script>
-<!--ésta sección de arriba es para insertar la navbar -->
-    </body>
+    </main>
+
+    <!-- JS: BD + lógica de actualización + carga navbar/footer -->
+    <script src="JavaScript/db.js"></script>
+    <script src="JavaScript/actualizarHabitacion.js"></script>
+    <script src="JavaScript/load_components.js"></script>
+</body>
 </html>
+

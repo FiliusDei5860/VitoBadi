@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Búsqueda – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/style.css" />
+</head>
+
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <!-- CABECERA SIMPLE CON LOGIN -->
+    <header class="main-header">
+        <div class="container navbar-content">
+            <div class="navbar-logo-group">
+                <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo" />
+                <h1 class="navbar-title">VitoBadi</h1>
+            </div>
+
+            <nav class="nav-links">
+                <a href="Busqueda.html" class="bg-gray-700 text-white">Búsqueda</a>
+                <a href="ListaHabitaciones.html">Listado</a>
+                <a href="login.html" id="link-login">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container flex-grow flex flex-col items-center justify-center py-10">
+
+        <div class="w-full max-w-sm bg-white shadow-lg rounded-xl px-8 py-8">
+            <h2 class="text-center text-xl font-semibold mb-6">Búsqueda</h2>
+
+            <form id="form-busqueda" class="space-y-6">
+                <!-- Ciudad -->
+                <div>
+                    <label for="ciudad" class="block text-sm font-medium mb-2">
+                        Ciudad
+                    </label>
+                    <select id="ciudad" name="ciudad"
+                            class="w-full px-4 py-3 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Cualquier ciudad</option>
+                        <option value="Bilbao">Bilbao</option>
+                        <option value="Vitoria-Gasteiz">Vitoria-Gasteiz</option>
+                        <option value="Donostia-San Sebastián">Donostia / San Sebastián</option>
+                    </select>
+                </div>
+
+                <!-- Fecha -->
+                <div>
+                    <label for="fecha" class="block text-sm font-medium mb-2">
+                        Año: AAAA/MM/DD
+                    </label>
+                    <input
+                        id="fecha"
+                        name="fecha"
+                        type="date"
+                        class="w-full px-4 py-3 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <!-- Botón buscar -->
+                <div class="pt-2">
+                    <button
+                        type="submit"
+                        class="w-full btn btn-primary text-center text-white font-semibold py-3">
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+    <footer class="main-footer">
+        <div class="container footer-content-group">
+            <div class="footer-section footer-legal">
+                <p>&copy; 2025 VitoBadi. Todos los derechos reservados.</p>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-title">Enlaces</h4>
+                <a class="footer-link">Aviso legal</a><br />
+                <a class="footer-link">Política de privacidad</a><br />
+                <a class="footer-link">Contacto</a>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-title">Síguenos</h4>
+                <span class="footer-social-icon">FB</span>
+                <span class="footer-social-icon">IG</span>
+                <span class="footer-social-icon">TW</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="JavaScript/db.js"></script>
+    <script src="JavaScript/busqueda.js"></script>
+</body>
+</html>
+

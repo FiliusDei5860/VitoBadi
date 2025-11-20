@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis solicitudes – Inquilino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/style.css">
+</head>
+
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+<header class="main-header">
+    <div class="container navbar-content">
+        <div class="navbar-logo-group">
+            <img src="./Public_icons/VitoBadiIcon.jpg" class="navbar-logo" alt="Logo">
+            <h1 class="navbar-title">VitoBadi</h1>
+        </div>
+
+        <nav class="nav-links">
+            <a href="ListaHabitaciones.html">Buscar</a>
+            <a href="MisSolicitudesInquilino.html" class="bg-gray-700 text-white">Mis solicitudes</a>
+            <a href="MisAlquileres.html">Mis Alquileres</a>
+        </nav>
+
+        <div class="user-actions">
+            <span>Hola inquilino</span>
+            <a href="perfil.html" class="user-icon">👤</a>
+            <a href="logout.html" class="logout-btn">Logout</a>
+        </div>
+    </div>
+</header>
+
+<main class="container py-8 flex-grow">
+    <h2 class="main-title">Mis solicitudes</h2>
+    <p class="subtitle-center">
+        Aquí puedes ver, modificar o eliminar tus solicitudes de reserva.
+    </p>
+
+    <section id="lista-solicitudes-inq" class="space-y-4"></section>
+
+    <p id="msg-no-solicitudes-inq" class="text-center text-gray-500 mt-4 hidden">
+        No tienes solicitudes (mock).
+    </p>
+</main>
+
+<footer class="main-footer">
+    <div class="container footer-content-group">
+        <div class="footer-section footer-legal">
+            <p>&copy; 2025 VitoBadi. Todos los derechos reservados.</p>
+        </div>
+        <div class="footer-section">
+            <h4 class="footer-title">Enlaces</h4>
+            <a class="footer-link">Aviso legal</a><br>
+            <a class="footer-link">Privacidad</a><br>
+            <a class="footer-link">Contacto</a>
+        </div>
+        <div class="footer-section">
+            <h4 class="footer-title">Síguenos</h4>
+            <span class="footer-social-icon">FB</span>
+            <span class="footer-social-icon">IG</span>
+            <span class="footer-social-icon">TW</span>
+        </div>
+    </div>
+</footer>
+<script src="JavaScript/db.js"></script>
+<script src="JavaScript/solicitudesInquilino.js"></script>
+</body>
+</html>
+
