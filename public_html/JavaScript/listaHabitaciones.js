@@ -56,7 +56,9 @@ document.addEventListener("DOMContentLoaded", () => {
             detLat.textContent    = "-";
             detLong.textContent   = "-";
             detImg.src            = "./Public_icons/hab1.png";
+
             detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
+
             btnSolicitar.textContent = "Selecciona una habitación";
             btnSolicitar.disabled    = true;
             btnSolicitar.onclick     = null;
@@ -85,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             btnSolicitar.textContent = "Login para solicitar";
             btnSolicitar.onclick = () => {
-                window.location.href = "Login.html";
+                window.location.href = "login.html";
             };
         }
     }
@@ -93,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---- Función: filtrar según ciudad y fecha ----
     function filtrarHabitaciones() {
         const ciudad = selectCiudad.value;
-        const fecha  = inputFecha.value; // "" o YYYY-MM-DD
+        const fecha  = inputFecha.value;
 
         let resultado = HABITACIONES_MOCK.slice();
 
@@ -141,7 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Texto
             const textWrapper = document.createElement("div");
 
             const titulo = document.createElement("h3");
@@ -158,24 +159,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
             infoGroup.appendChild(imgPlaceholder);
             infoGroup.appendChild(textWrapper);
-
             card.appendChild(infoGroup);
 
-            // Al hacer click en la tarjeta, mostramos el detalle en el panel derecho
-            card.addEventListener("click", () => {
-                mostrarDetalle(habitacion);
-            });
+            // Click → mostrar detalle a la derecha
+            card.addEventListener("click", () => mostrarDetalle(habitacion));
 
             listaHabitaciones.appendChild(card);
         });
 
-        // Al pintar, seleccionamos la primera por defecto
+        // Al pintar, mostrar la primera
         mostrarDetalle(habitaciones[0]);
     }
 
     // Eventos
     btnBuscar.addEventListener("click", filtrarHabitaciones);
 
-    // Pintamos al cargar
-    pintarHabitaciones(HABITACIONES_MOCK);
+    // --- Inicializar filtros desde la URL (si venimos de Busqueda.html) ---
+    const params = new URLSearchParams(window.location.search);
+    const ciudadInicial = params.get("ciudad") || "";
+    const fechaInicial  = params.get("fecha") || "";
+
+    // Rellenar campos si vienen en la URL
+    if (ciudadInicial && selectCiudad) {
+        selectCiudad.value = ciudadInicial;
+    }
+    if (fechaInicial && inputFecha) {
+        inputFecha.value = fechaInicial;
+    }
+
+    // Si hay filtros → aplicar. Si no → pintar todo.
+    if (ciudadInicial || fechaInicial) {
+        filtrarHabitaciones();
+    } else {
+        pintarHabitaciones(HABITACIONES_MOCK);
+    }
 });
