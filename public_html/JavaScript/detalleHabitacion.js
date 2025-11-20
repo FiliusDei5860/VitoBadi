@@ -1,79 +1,75 @@
 // JavaScript/detalleHabitacion.js
-// Vista ampliada de una habitación (datos de ejemplo, sin IndexedDB todavía)
-
-const HABITACIONES_MOCK = [
-    {
-        idHabi: 1,
-        direccion: "C/ Gorbea 12, 3ºA",
-        ciudad: "Vitoria-Gasteiz",
-        precio: 350,
-        latitud: 42.846,
-        longitud: -2.672,
-        estado: "Disponible",
-        imagen: "./Public_icons/hab1.png" // pon aquí cualquier imagen de prueba
-    },
-    {
-        idHabi: 2,
-        direccion: "Gran Vía 25, 2ºD",
-        ciudad: "Bilbao",
-        precio: 420,
-        latitud: 43.262,
-        longitud: -2.935,
-        estado: "Ocupada",
-        imagen: "./Public_icons/hab2.jpg"
-    }
-    // añade más si quieres
-];
+// Vista ampliada de una habitación usando IndexedDB
 
 document.addEventListener("DOMContentLoaded", () => {
-    const spanDireccion = document.getElementById("hab-direccion");
-    const spanCiudad    = document.getElementById("hab-ciudad");
-    const spanPrecio    = document.getElementById("hab-precio");
-    const spanLatitud   = document.getElementById("hab-latitud");
-    const spanLongitud  = document.getElementById("hab-longitud");
-    const spanEstado    = document.getElementById("hab-estado");
-    const imgHab        = document.getElementById("hab-imagen");
-    const btnVolver     = document.getElementById("btn-volver");
 
-    // 1. Leer parámetro ?id= de la URL
+    const spanDireccion = document.getElementById("det-direccion");
+    const spanCiudad    = document.getElementById("det-ciudad");
+    const spanPrecio    = document.getElementById("det-precio");
+    const spanLatitud   = document.getElementById("det-latitud");
+    const spanLongitud  = document.getElementById("det-longitud");
+    const spanEstado    = document.getElementById("det-estado");
+    const imgHab        = document.getElementById("det-imagen");
+
+    // Obtener id por query string: ?id=15
     const params = new URLSearchParams(window.location.search);
-    const idStr = params.get("id");
-    const id = idStr ? parseInt(idStr, 10) : NaN;
+    const idStr  = params.get("id");
+    const id     = idStr ? Number(idStr) : NaN;
 
-    // 2. Buscar habitación en el mock
-    let habitacion = null;
-    if (!isNaN(id)) {
-        habitacion = HABITACIONES_MOCK.find(h => h.idHabi === id) || null;
+    if (!idStr || isNaN(id)) {
+        if (spanDireccion) spanDireccion.textContent = "ID de habitación no válido.";
+        return;
     }
 
-    if (!habitacion) {
-        // Si no encontramos habitación, mostramos un mensaje sencillo
-        spanDireccion.textContent = "Habitación no encontrada";
-        spanCiudad.textContent    = "-";
-        spanPrecio.textContent    = "-";
-        spanLatitud.textContent   = "-";
-        spanLongitud.textContent  = "-";
-        spanEstado.textContent    = "-";
-    } else {
-        // Rellenar datos
-        spanDireccion.textContent = habitacion.direccion;
-        spanCiudad.textContent    = habitacion.ciudad;
-        spanPrecio.textContent    = habitacion.precio + " €/mes";
-        spanLatitud.textContent   = habitacion.latitud;
-        spanLongitud.textContent  = habitacion.longitud;
-        spanEstado.textContent    = habitacion.estado;
+    abrirBD()
+        .then(db => {
+            const tx    = db.transaction(STORE_HABITACION, "readonly");
+            const store = tx.objectStore(STORE_HABITACION);
+            const req   = store.get(id);
 
-        if (habitacion.imagen) {
-            imgHab.src = habitacion.imagen;
-        }
-    }
+            req.onsuccess = () => {
+                const habitacion = req.result;
 
-    // 3. Botón volver
-    if (btnVolver) {
-        btnVolver.addEventListener("click", () => {
-            // De momento simplemente volvemos a "mis_habitaciones"
-            window.location.href = "mis_habitaciones.html";
+                if (!habitacion) {
+                    if (spanDireccion) spanDireccion.textContent = "Habitación no encontrada.";
+                    if (spanCiudad)    spanCiudad.textContent    = "-";
+                    if (spanPrecio)    spanPrecio.textContent    = "-";
+                    if (spanLatitud)   spanLatitud.textContent   = "-";
+                    if (spanLongitud)  spanLongitud.textContent  = "-";
+                    if (spanEstado)    spanEstado.textContent    = "Desconocido";
+                    if (imgHab) {
+                        imgHab.removeAttribute("src");
+                        imgHab.style.display = "none";
+                    }
+                    return;
+                }
+
+                if (spanDireccion) spanDireccion.textContent = habitacion.direccion || "";
+                if (spanCiudad)    spanCiudad.textContent    = habitacion.ciudad || "-";
+                if (spanPrecio)    spanPrecio.textContent    =
+                    (habitacion.precio != null ? habitacion.precio + " €/mes" : "-");
+                if (spanLatitud)   spanLatitud.textContent   = habitacion.latitud  ?? "-";
+                if (spanLongitud)  spanLongitud.textContent  = habitacion.longitud ?? "-";
+                if (spanEstado)    spanEstado.textContent    = habitacion.estado || "Disponible";
+
+                if (imgHab) {
+                    if (habitacion.imagen) {
+                        imgHab.src = habitacion.imagen;
+                        imgHab.style.display = "block";
+                    } else {
+                        imgHab.removeAttribute("src");
+                        imgHab.style.display = "none";
+                    }
+                }
+            };
+
+            req.onerror = () => {
+                console.error("Error leyendo habitación:", req.error);
+                if (spanDireccion) spanDireccion.textContent = "Error cargando la habitación.";
+            };
+        })
+        .catch(err => {
+            console.error("Error abriendo BD en detalleHabitacion:", err);
+            if (spanDireccion) spanDireccion.textContent = "Error abriendo la base de datos.";
         });
-    }
 });
-
