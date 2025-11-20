@@ -1,82 +1,199 @@
 // JavaScript/detalleSolicitudPropietario.js
-// Muestra los datos ampliados de la solicitud según el id recibido en la URL
+// Muestra y gestiona una solicitud REAL desde IndexedDB (sin datos mock)
 
-const SOLICITUDES_MOCK = {
-    "1": {
-        nombreInquilino: "Juan Pérez",
-        habitacion: "Habitación Casco Viejo",
-        direccion: "C/ Mayor 10, Bilbao",
-        ciudad: "Bilbao",
-        precio: "380€",
-        fechas: "Del 1 de marzo al 30 de junio",
-        mensaje: "Busco habitación cerca del centro para estancia por estudios.",
-        imagen: "./Public_icons/hab1.png",
-        estado: "Pendiente"
-    },
-    "2": {
-        nombreInquilino: "María García",
-        habitacion: "Estudio Zona Universitaria",
-        direccion: "Avda. Universidades 5, Bilbao",
-        ciudad: "Bilbao",
-        precio: "550€",
-        fechas: "Del 15 de febrero al 31 de julio",
-        mensaje: "Me interesa para curso completo, soy estudiante de máster.",
-        imagen: "./Public_icons/hab1.png",
-        estado: "Pendiente"
-    }
-};
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+    const idParam = params.get("id");
+    const idSolicitud = idParam ? Number(idParam) : NaN;
 
-    const sol = SOLICITUDES_MOCK[id];
-    if (!sol) {
-        document.getElementById("titulo-solicitud").textContent =
-            "Solicitud no encontrada";
+    const tituloSolicitud   = document.getElementById("titulo-solicitud");
+    const divImagenHab      = document.getElementById("imagen-habitacion");
+    const spanNombreInq     = document.getElementById("nombre-inquilino");
+    const spanHabInfo       = document.getElementById("habitacion-info");
+    const spanPrecio        = document.getElementById("precio-habitacion");
+    const spanRangoFechas   = document.getElementById("rango-fechas");
+    const spanMensaje       = document.getElementById("mensaje-inquilino");
+    const badgeEstado       = document.getElementById("estado-badge");
+    const btnAceptar        = document.getElementById("btn-aceptar");
+    const btnRechazar       = document.getElementById("btn-rechazar");
+
+    if (!idParam || isNaN(idSolicitud)) {
+        if (tituloSolicitud) {
+            tituloSolicitud.textContent = "Solicitud no encontrada (ID inválido)";
+        }
         return;
     }
 
-    // Rellenar textos
-    document.getElementById("titulo-solicitud").textContent =
-        `Solicitud de ${sol.nombreInquilino}`;
-    document.getElementById("nombre-inquilino").textContent =
-        `Solicitud de ${sol.nombreInquilino}`;
-    document.getElementById("habitacion-info").textContent =
-        `${sol.habitacion} – ${sol.direccion} (${sol.ciudad})`;
-    document.getElementById("precio-habitacion").textContent = sol.precio;
-    document.getElementById("rango-fechas").textContent = sol.fechas;
-    document.getElementById("mensaje-inquilino").textContent = sol.mensaje;
+    let db;
+    let solicitudActual = null;
 
-    const imgDiv = document.getElementById("imagen-habitacion");
-    if (imgDiv && sol.imagen) {
-        imgDiv.style.backgroundImage = `url('${sol.imagen}')`;
-        imgDiv.style.backgroundSize = "cover";
+    try {
+        db = await abrirBD();
+    } catch (err) {
+        console.error("Error abriendo BD en detalleSolicitudPropietario:", err);
+        if (tituloSolicitud) tituloSolicitud.textContent = "Error abriendo la base de datos.";
+        return;
     }
 
-    const badge = document.getElementById("estado-badge");
-    actualizarBadgeEstado(badge, sol.estado);
+    // ============================
+    // 1) Cargar SOLICITUD desde BD
+    // ============================
+    solicitudActual = await cargarSolicitud(db, idSolicitud);
 
-    const btnAceptar = document.getElementById("btn-aceptar");
-    const btnRechazar = document.getElementById("btn-rechazar");
+    if (!solicitudActual) {
+        if (tituloSolicitud) {
+            tituloSolicitud.textContent = "Solicitud no encontrada.";
+        }
+        return;
+    }
 
-    btnAceptar.addEventListener("click", () => {
-        sol.estado = "Aceptada";
-        actualizarBadgeEstado(badge, sol.estado);
-        alert("Solicitud aceptada (demo, sin BD).");
-    });
+    // ============================
+    // 2) Cargar HABITACIÓN
+    // ============================
+    const habitacion = await cargarHabitacion(db, solicitudActual.idHabitacion);
 
-    btnRechazar.addEventListener("click", () => {
-        sol.estado = "Rechazada";
-        actualizarBadgeEstado(badge, sol.estado);
-        alert("Solicitud rechazada (demo, sin BD).");
-    });
+    // ============================
+    // 3) Cargar INQUILINO
+    // ============================
+    const inquilino = await cargarInquilino(db, solicitudActual.emailInquilinoPosible);
+
+    // ============================
+    // 4) Rellenar la pantalla
+    // ============================
+    if (tituloSolicitud) {
+        tituloSolicitud.textContent =
+            `Solicitud de ${inquilino?.nombre || solicitudActual.emailInquilinoPosible}`;
+    }
+
+    if (spanNombreInq) {
+        spanNombreInq.textContent =
+            inquilino?.nombre || solicitudActual.emailInquilinoPosible || "Inquilino desconocido";
+    }
+
+    if (spanHabInfo && habitacion) {
+        spanHabInfo.textContent =
+            `${habitacion.direccion || ""} · ${habitacion.ciudad || "-"}`;
+    }
+
+    if (spanPrecio) {
+        const precioTxt =
+            habitacion && habitacion.precio != null
+                ? habitacion.precio + " €/mes"
+                : "-";
+        spanPrecio.textContent = precioTxt;
+    }
+
+    if (spanRangoFechas) {
+        spanRangoFechas.textContent =
+            solicitudActual.fechas || solicitudActual.fechaDeseada || "Sin fechas especificadas";
+    }
+
+    if (spanMensaje) {
+        spanMensaje.textContent =
+            solicitudActual.mensaje || "Sin mensaje incluido";
+    }
+
+    if (divImagenHab && habitacion) {
+        let src = null;
+        if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
+            src = habitacion.imagenes[0];
+        } else if (habitacion.imagen) {
+            src = habitacion.imagen;
+        }
+
+        if (src) {
+            divImagenHab.style.backgroundImage = `url('${src}')`;
+            divImagenHab.style.backgroundSize = "cover";
+            divImagenHab.style.backgroundPosition = "center";
+        }
+    }
+
+    const estadoInicial = solicitudActual.estado || "Pendiente";
+    actualizarBadgeEstado(badgeEstado, estadoInicial);
+
+    // ============================
+    // 5) Botones Aceptar / Rechazar
+    // ============================
+    if (btnAceptar) {
+        btnAceptar.addEventListener("click", async () => {
+            await actualizarEstadoSolicitud(db, solicitudActual, "Aceptada");
+            actualizarBadgeEstado(badgeEstado, "Aceptada");
+            alert("Solicitud aceptada.");
+        });
+    }
+
+    if (btnRechazar) {
+        btnRechazar.addEventListener("click", async () => {
+            await actualizarEstadoSolicitud(db, solicitudActual, "Rechazada");
+            actualizarBadgeEstado(badgeEstado, "Rechazada");
+            alert("Solicitud rechazada.");
+        });
+    }
 });
+
+// ============================
+//  Funciones auxiliares BD
+// ============================
+
+function cargarSolicitud(db, idSolicitud) {
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_SOLICITUD, "readonly");
+        const store = tx.objectStore(STORE_SOLICITUD);
+        const req   = store.get(idSolicitud);
+
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+function cargarHabitacion(db, idHabitacion) {
+    if (idHabitacion == null) return Promise.resolve(null);
+
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_HABITACION, "readonly");
+        const store = tx.objectStore(STORE_HABITACION);
+        const req   = store.get(idHabitacion);
+
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+function cargarInquilino(db, email) {
+    if (!email) return Promise.resolve(null);
+
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_USUARIO, "readonly");
+        const store = tx.objectStore(STORE_USUARIO);
+        const req   = store.get(email);
+
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+function actualizarEstadoSolicitud(db, solicitud, nuevoEstado) {
+    return new Promise((resolve, reject) => {
+        const tx    = db.transaction(STORE_SOLICITUD, "readwrite");
+        const store = tx.objectStore(STORE_SOLICITUD);
+
+        solicitud.estado = nuevoEstado;
+
+        const req = store.put(solicitud);
+
+        req.onsuccess = () => resolve();
+        req.onerror   = (e) => {
+            console.error("Error actualizando estado de solicitud:", e.target.error);
+            reject(e.target.error);
+        };
+    });
+}
 
 function actualizarBadgeEstado(badge, estado) {
     if (!badge) return;
 
-    let base = "px-3 py-1 rounded-full text-xs font-semibold text-center ";
+    const base = "px-3 py-1 rounded-full text-xs font-semibold text-center ";
+
     if (estado === "Aceptada") {
         badge.className = base + "bg-green-100 text-green-700";
     } else if (estado === "Rechazada") {
@@ -84,5 +201,6 @@ function actualizarBadgeEstado(badge, estado) {
     } else {
         badge.className = base + "bg-yellow-100 text-yellow-700";
     }
+
     badge.textContent = `Estado: ${estado}`;
 }

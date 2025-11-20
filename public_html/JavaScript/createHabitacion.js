@@ -1,5 +1,5 @@
 // JavaScript/createHabitacion.js
-// Crear una nueva habitación en IndexedDB con ID secuencial e imagen en base64
+// Crear una nueva habitación en IndexedDB con ID secuencial y VARIAS imágenes en base64
 
 console.log("CARGADO createHabitacion.js");
 
@@ -15,15 +15,20 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(err => console.error("Error abriendo BD:", err));
 
-    const form        = document.getElementById("create-room-form");
-    const inputTitulo = document.getElementById("titulo");
-    const inputDesc   = document.getElementById("descripcion");
-    const inputPrecio = document.getElementById("precio");
-    const inputDir    = document.getElementById("direccion");
-    const inputTam    = document.getElementById("tamanio");
-    const inputImagen = document.getElementById("imagenes");
+    const form           = document.getElementById("create-room-form");
+    const inputTitulo    = document.getElementById("titulo");
+    const inputDesc      = document.getElementById("descripcion");
+    const inputPrecio    = document.getElementById("precio");
+    const inputDir       = document.getElementById("direccion");
+    const inputTam       = document.getElementById("tamanio");
+    const inputImagenes  = document.getElementById("imagenes");
+    const dropZone       = document.getElementById("drop-zone");
+    const previewContainer = document.getElementById("preview-container");
 
     if (!form) return;
+
+    // Ficheros seleccionados (drag&drop o input)
+    let selectedFiles = [];
 
     // ==============================
     //  Auxiliar: siguiente ID
@@ -61,6 +66,75 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==============================
+    //  Previsualización
+    // ==============================
+    function limpiarPreview() {
+        if (previewContainer) {
+            previewContainer.innerHTML = "";
+        }
+    }
+
+    function mostrarPreviewDeFiles(files) {
+        if (!previewContainer) return;
+        limpiarPreview();
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                img.className = "w-full h-24 object-cover rounded-lg shadow-sm";
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ==============================
+    //  Eventos drag & drop
+    // ==============================
+    if (dropZone && inputImagenes) {
+
+        // Click en la zona → abrir selector
+        dropZone.addEventListener("click", () => {
+            inputImagenes.click();
+        });
+
+        // Cambio en el input file
+        inputImagenes.addEventListener("change", (e) => {
+            const files = Array.from(e.target.files || []);
+            const images = files.filter(f => f.type.startsWith("image/"));
+            selectedFiles = images;
+            mostrarPreviewDeFiles(selectedFiles);
+        });
+
+        // Drag over
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("border-indigo-500", "bg-indigo-50");
+        });
+
+        dropZone.addEventListener("dragleave", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-indigo-500", "bg-indigo-50");
+        });
+
+        // Drop
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-indigo-500", "bg-indigo-50");
+
+            const files = Array.from(e.dataTransfer.files || []);
+            const images = files.filter(f => f.type.startsWith("image/"));
+
+            if (images.length > 0) {
+                selectedFiles = images;
+                mostrarPreviewDeFiles(selectedFiles);
+            }
+        });
+    }
+
+    // ==============================
     //  Submit del formulario
     // ==============================
     form.addEventListener("submit", async (e) => {
@@ -71,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Usuario logeado
+        // Usuario logeado (propietario)
         let emailPropietario = null;
         try {
             const stored = sessionStorage.getItem("usuarioActual");
@@ -93,32 +167,32 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Imagen obligatoria
-        const file = inputImagen?.files?.[0] || null;
-        if (!file) {
+        // Imágenes obligatorias
+        if (!selectedFiles || selectedFiles.length === 0) {
             alert("Debes seleccionar al menos una imagen de la habitación.");
             return;
         }
 
         try {
-            // Obtenemos id secuencial + imagen base64 en paralelo
-            const [nuevoId, imagenBase64] = await Promise.all([
+            // Obtenemos id secuencial + TODAS las imágenes en base64
+            const [nuevoId, imagenesBase64] = await Promise.all([
                 obtenerSiguienteIdHabitacion(dbGlobal),
-                leerArchivoComoDataURL(file)
+                Promise.all(selectedFiles.map(leerArchivoComoDataURL))
             ]);
 
             const nuevaHabitacion = {
                 idHabitacion: nuevoId,
                 titulo: titulo || dir,
                 direccion: dir,
-                ciudad: "",              // podrás ampliarlo si quieres
+                ciudad: "",              // se puede ampliar si queréis
                 precio,
-                disponibleDesde: "",     // idem
+                disponibleDesde: "",
                 latitud: null,
                 longitud: null,
                 tamanio,
                 descripcion: desc,
-                imagen: imagenBase64,    // AQUÍ guardamos el base64
+                imagen: imagenesBase64[0],   // principal
+                imagenes: imagenesBase64,    // array con todas
                 emailPropietario
             };
 
@@ -138,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error("Error procesando la habitación:", err);
-            alert("Error al procesar la imagen o guardar en BD.");
+            alert("Error al procesar las imágenes o guardar en BD.");
         }
     });
 });

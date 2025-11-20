@@ -1,71 +1,74 @@
 // JavaScript/busqueda.js
-// Vista de búsqueda general (puede estar logeado o no)
+// Gestiona la búsqueda general y la navegación hacia ListaHabitaciones
 
 document.addEventListener("DOMContentLoaded", () => {
-
-    let dbGlobal = null;
-
-    // ============================
-    //  ABRIR BASE DE DATOS
-    // ============================
-    abrirBD()
-        .then(db => {
-            dbGlobal = db;
-            console.log("BD lista en búsqueda:", db.name);
-        })
-        .catch(err => {
-            console.error("Error al abrir BD en búsqueda:", err);
-        });
-
-
-    // ============================
-    //  CAPTURA DE ELEMENTOS
-    // ============================
     const formBusqueda = document.getElementById("form-busqueda");
     const selectCiudad = document.getElementById("ciudad");
     const inputFecha   = document.getElementById("fecha");
     const linkLogin    = document.getElementById("link-login");
 
-    if (!formBusqueda) return;
+    // ==========================
+    //  Estado de login en cabecera
+    // ==========================
+    if (linkLogin) {
+        try {
+            const stored = sessionStorage.getItem("usuarioActual");
+            if (stored) {
+                const usuario = JSON.parse(stored);
 
+                // Mostrar algo más útil que "login"
+                linkLogin.textContent = usuario.nombre || usuario.email || "Cerrar sesión";
 
-    // ============================
-    //  MOSTRAR ESTADO DE LOGIN EN NAVBAR
-    // ============================
-    try {
-        const usuarioActualJSON = sessionStorage.getItem("usuarioActual");
-        if (usuarioActualJSON && linkLogin) {
-            const usuario = JSON.parse(usuarioActualJSON);
-            const nombre  = usuario.nombre || usuario.email || "usuario";
-
-            // Cambiamos el texto del enlace de Login
-            linkLogin.textContent = `Hola, ${nombre}`;
-            // Y lo mandamos, por ejemplo, a la lista de habitaciones
-            linkLogin.href = "ListaHabitaciones.html";
+                // Al hacer clic, cerrar sesión y volver a login
+                linkLogin.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    sessionStorage.removeItem("usuarioActual");
+                    localStorage.removeItem("usuarioActual");
+                    window.location.href = "login.html";
+                });
+            }
+        } catch (e) {
+            console.warn("No se ha podido leer usuarioActual de sessionStorage:", e);
         }
-    } catch (e) {
-        console.error("Error leyendo usuarioActual de sessionStorage:", e);
     }
 
+    if (!formBusqueda) return;
 
-    // ============================
-    //  ENVÍO DEL FORMULARIO
-    // ============================
+    // ==========================
+    //  Rellenar formulario si vienen filtros por URL (opcional)
+    // ==========================
+    const params = new URLSearchParams(window.location.search);
+    const ciudadURL = params.get("ciudad") || "";
+    const fechaURL  = params.get("fecha")  || "";
+
+    if (ciudadURL && selectCiudad) {
+        selectCiudad.value = ciudadURL;
+    }
+    if (fechaURL && inputFecha) {
+        inputFecha.value = fechaURL;
+    }
+
+    // ==========================
+    //  Envío del formulario
+    // ==========================
     formBusqueda.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const ciudad = selectCiudad ? (selectCiudad.value || "") : "";
-        const fecha  = inputFecha   ? (inputFecha.value   || "") : "";
+        const ciudad = selectCiudad ? selectCiudad.value : "";
+        const fecha  = inputFecha   ? inputFecha.value   : "";
 
-        const params = new URLSearchParams();
+        const searchParams = new URLSearchParams();
 
-        if (ciudad) params.set("ciudad", ciudad);
-        if (fecha)  params.set("fecha",  fecha);
+        if (ciudad) {
+            searchParams.set("ciudad", ciudad);
+        }
+        if (fecha) {
+            searchParams.set("fecha", fecha);
+        }
 
-        const query = params.toString();
-        const urlDestino = query
-            ? `ListaHabitaciones.html?${query}`
-            : "ListaHabitaciones.html";
+        // Redirigimos a la lista de habitaciones con los filtros
+        const query = searchParams.toString();
+        const urlDestino = "ListaHabitaciones.html" + (query ? "?" + query : "");
 
         window.location.href = urlDestino;
     });
