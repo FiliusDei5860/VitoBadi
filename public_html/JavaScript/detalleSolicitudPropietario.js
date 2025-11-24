@@ -1,159 +1,122 @@
 // JavaScript/detalleSolicitudPropietario.js
-// Detalle de solicitud del propietario leyendo IndexedDB
+// Detalle REAL de solicitud + aceptar/rechazar
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const idSolicitud = Number(params.get("id"));
 
-    const elTitulo = document.getElementById("titulo-solicitud");
-    const elImgHab = document.getElementById("imagen-habitacion");
-    const elNomInq = document.getElementById("nombre-inquilino");
-    const elHabInfo = document.getElementById("habitacion-info");
-    const elPrecioHab = document.getElementById("precio-habitacion");
-    const elRangoFech = document.getElementById("rango-fechas");
-    const elMensajeInq = document.getElementById("mensaje-inquilino");
-    const elBadge = document.getElementById("estado-badge");
+    const tituloEl = document.getElementById("titulo-solicitud");
+    const nombreEl = document.getElementById("nombre-inquilino");
+    const habInfoEl = document.getElementById("habitacion-info");
+    const precioEl = document.getElementById("precio-habitacion");
+    const fechasEl = document.getElementById("rango-fechas");
+    const mensajeEl = document.getElementById("mensaje-inquilino");
+    const imgDiv = document.getElementById("imagen-habitacion");
+    const badgeEl = document.getElementById("estado-badge");
     const btnAceptar = document.getElementById("btn-aceptar");
     const btnRechazar = document.getElementById("btn-rechazar");
 
-    // id desde URL
-    const params = new URLSearchParams(window.location.search);
-    const idStr = params.get("id");
-    const idSolicitud = idStr ? Number(idStr) : null;
+    // usuario logeado
+    let usuarioActual = null;
+    try {
+        const raw = sessionStorage.getItem("usuarioActual");
+        usuarioActual = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+    }
 
-    if (!idSolicitud || Number.isNaN(idSolicitud)) {
-        if (elTitulo)
-            elTitulo.textContent = "Solicitud no válida";
-        desactivarBotones();
+    if (!usuarioActual?.email) {
+        if (tituloEl)
+            tituloEl.textContent = "Debes iniciar sesión.";
+        if (btnAceptar)
+            btnAceptar.disabled = true;
+        if (btnRechazar)
+            btnRechazar.disabled = true;
+        return;
+    }
+
+    if (!idSolicitud) {
+        if (tituloEl)
+            tituloEl.textContent = "Solicitud no encontrada";
         return;
     }
 
     try {
         const db = await abrirBD();
 
-        // 1) Leer solicitud
-        const solicitud = await getByKey(db, STORE_SOLICITUD, idSolicitud);
-        if (!solicitud) {
-            if (elTitulo)
-                elTitulo.textContent = "Solicitud no encontrada";
-            desactivarBotones();
+        const sol = await getByKey(db, STORE_SOLICITUD, idSolicitud);
+        if (!sol) {
+            if (tituloEl)
+                tituloEl.textContent = "Solicitud no encontrada";
             return;
         }
 
-        // 2) Leer habitación vinculada
-        const habitacion = await getByKey(db, STORE_HABITACION, solicitud.idHabitacion);
+        const hab = await getByKey(db, STORE_HABITACION, sol.idHabitacion);
+        if (!hab || hab.emailPropietario !== usuarioActual.email) {
+            if (tituloEl)
+                tituloEl.textContent = "No tienes permiso para ver esta solicitud.";
+            if (btnAceptar)
+                btnAceptar.disabled = true;
+            if (btnRechazar)
+                btnRechazar.disabled = true;
+            return;
+        }
 
-        // 3) Leer usuario inquilino posible
-        const inquilino = await getByKey(db, STORE_USUARIO, solicitud.emailInquilinoPosible);
+        const inq = await getByKey(db, STORE_USUARIO, sol.emailInquilinoPosible);
 
-        // --------- Pintar datos ----------
-        if (elTitulo)
-            elTitulo.textContent = `Solicitud #${solicitud.idSolicitud}`;
+        // pintar UI
+        if (tituloEl)
+            tituloEl.textContent = `Solicitud de ${inq?.nombre || sol.emailInquilinoPosible}`;
+        if (nombreEl)
+            nombreEl.textContent = inq?.nombre || sol.emailInquilinoPosible;
+        if (habInfoEl)
+            habInfoEl.textContent = `${hab.titulo || "Habitación"} – ${hab.direccion} (${hab.ciudad})`;
+        if (precioEl)
+            precioEl.textContent = `${hab.precio} €/mes`;
 
-        // Imagen habitación (si existe)
+        const fIni = sol.fechaInicio || sol.fechaInicioAlquiler || "-";
+        const fFin = sol.fechaFin || sol.fechaFinAlquiler || "-";
+        if (fechasEl)
+            fechasEl.textContent = `${fIni} → ${fFin}`;
+
+        if (mensajeEl)
+            mensajeEl.textContent = sol.mensaje || "(sin mensaje)";
+
         let imgSrc = null;
-        if (habitacion) {
-            if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
-                imgSrc = habitacion.imagenes[0];
-            } else if (habitacion.imagen) {
-                imgSrc = habitacion.imagen;
-            }
-        }
-        if (elImgHab) {
-            if (imgSrc) {
-                elImgHab.src = imgSrc;
-            } else {
-                elImgHab.removeAttribute("src"); // se queda sin imagen
-                elImgHab.alt = "Sin imagen";
-            }
+        if (Array.isArray(hab.imagenes) && hab.imagenes.length)
+            imgSrc = hab.imagenes[0];
+        else if (hab.imagen)
+            imgSrc = hab.imagen;
+        if (imgDiv && imgSrc) {
+            imgDiv.style.backgroundImage = `url('${imgSrc}')`;
+            imgDiv.style.backgroundSize = "cover";
+            imgDiv.style.backgroundPosition = "center";
         }
 
-        if (elNomInq) {
-            elNomInq.textContent = inquilino?.nombre || solicitud.emailInquilinoPosible || "-";
-        }
+        const estado = sol.estado || "Pendiente";
+        actualizarBadgeEstado(badgeEl, estado);
+        btnAceptar.disabled = estado !== "Pendiente";
+        btnRechazar.disabled = estado !== "Pendiente";
 
-        if (elHabInfo) {
-            const dir = habitacion?.direccion || "";
-            const ciu = habitacion?.ciudad || "";
-            elHabInfo.textContent = `${dir}${dir && ciu ? " · " : ""}${ciu}` || `Hab ${solicitud.idHabitacion}`;
-        }
+        btnAceptar.addEventListener("click", async () => {
+            await aceptarSolicitud(db, sol);
+            alert("Solicitud aceptada.");
+            window.location.href = "MisAlquileres.html";
+        });
 
-        if (elPrecioHab) {
-            elPrecioHab.textContent =
-                    habitacion?.precio != null ? `${habitacion.precio} €/mes` : "-";
-        }
-
-        // Fechas deseadas (si existen en la solicitud)
-        const fIni = solicitud.fechaInicioDeseada || solicitud.fechaInicio || "";
-        const fFin = solicitud.fechaFinDeseada || solicitud.fechaFin || "";
-        if (elRangoFech) {
-            elRangoFech.textContent = (fIni || fFin) ? `${fIni || "?"} → ${fFin || "?"}` : "-";
-        }
-
-        if (elMensajeInq) {
-            elMensajeInq.textContent = solicitud.mensaje || solicitud.comentario || "-";
-        }
-
-        // Estado
-        actualizarBadge(solicitud.estado || "Pendiente");
-
-        // Si ya está resuelta, no permitimos cambio
-        const estadoActual = (solicitud.estado || "Pendiente");
-        if (estadoActual !== "Pendiente") {
-            desactivarBotones();
-        } else {
-            // Botones aceptar / rechazar
-            if (btnAceptar) {
-                btnAceptar.addEventListener("click", async () => {
-                    await cambiarEstado(db, solicitud, "Aceptada");
-                });
-            }
-            if (btnRechazar) {
-                btnRechazar.addEventListener("click", async () => {
-                    await cambiarEstado(db, solicitud, "Rechazada");
-                });
-            }
-        }
+        btnRechazar.addEventListener("click", async () => {
+            await rechazarSolicitud(db, sol.idSolicitud);
+            alert("Solicitud rechazada.");
+            window.location.href = "SolicitudesPropietario.html";
+        });
 
     } catch (err) {
-        console.error("Error detalleSolicitudPropietario:", err);
-        if (elTitulo)
-            elTitulo.textContent = "Error cargando solicitud";
-        desactivarBotones();
-    }
-
-    // ---------------- helpers ----------------
-
-    function desactivarBotones() {
-        if (btnAceptar)
-            btnAceptar.disabled = true;
-        if (btnRechazar)
-            btnRechazar.disabled = true;
-    }
-
-    function actualizarBadge(estado) {
-        if (!elBadge)
-            return;
-        const base = "px-3 py-1 rounded-full text-xs font-semibold ";
-        elBadge.className =
-                estado === "Aceptada" ? base + "bg-green-100 text-green-700" :
-                estado === "Rechazada" ? base + "bg-red-100 text-red-700" :
-                base + "bg-yellow-100 text-yellow-700";
-        elBadge.textContent = `Estado: ${estado}`;
-    }
-
-    async function cambiarEstado(db, solicitud, nuevoEstado) {
-        solicitud.estado = nuevoEstado;
-
-        await putItem(db, STORE_SOLICITUD, solicitud);
-
-        actualizarBadge(nuevoEstado);
-        desactivarBotones();
-
-        alert(`Solicitud ${nuevoEstado.toLowerCase()}.`);
-        // opcional: volver a lista
-        // window.location.href = "SolicitudesPropietario.html";
+        console.error(err);
+        if (tituloEl)
+            tituloEl.textContent = "Error cargando detalle.";
     }
 });
 
+// ---------- helpers DB ----------
 function getByKey(db, storeName, key) {
     return new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, "readonly");
@@ -164,12 +127,51 @@ function getByKey(db, storeName, key) {
     });
 }
 
-function putItem(db, storeName, item) {
+function aceptarSolicitud(db, sol) {
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(storeName, "readwrite");
-        const st = tx.objectStore(storeName);
-        const req = st.put(item);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(req.error);
+        const tx = db.transaction([STORE_ALQUILER, STORE_SOLICITUD], "readwrite");
+        const stAlq = tx.objectStore(STORE_ALQUILER);
+        const stSol = tx.objectStore(STORE_SOLICITUD);
+
+        const reqAll = stAlq.getAll();
+        reqAll.onsuccess = () => {
+            const all = reqAll.result || [];
+            const nextId = all.reduce((m, a) => Math.max(m, a.idContrato || 0), 0) + 1;
+
+            const nuevoAlquiler = {
+                idContrato: nextId,
+                idHabitacion: sol.idHabitacion,
+                emailInquilino: sol.emailInquilinoPosible,
+                fechaInicioAlquiler: sol.fechaInicio || sol.fechaInicioAlquiler || new Date().toISOString().slice(0, 10),
+                fechaFinAlquiler: sol.fechaFin || sol.fechaFinAlquiler || null
+            };
+
+            stAlq.add(nuevoAlquiler);
+            stSol.delete(sol.idSolicitud);
+        };
+        reqAll.onerror = () => reject(reqAll.error);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
     });
+}
+
+function rechazarSolicitud(db, idSolicitud) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_SOLICITUD, "readwrite");
+        tx.objectStore(STORE_SOLICITUD).delete(idSolicitud);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+function actualizarBadgeEstado(badge, estado) {
+    if (!badge)
+        return;
+    const base = "px-3 py-1 rounded-full text-xs font-semibold text-center ";
+    badge.className =
+            estado === "Aceptada" ? base + "bg-green-100 text-green-700" :
+            estado === "Rechazada" ? base + "bg-red-100 text-red-700" :
+            base + "bg-yellow-100 text-yellow-700";
+    badge.textContent = `Estado: ${estado}`;
 }

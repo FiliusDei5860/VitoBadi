@@ -42,15 +42,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     // -----------------------------
     // Cargar Habitaciones de BD
     // -----------------------------
+    // -----------------------------
+    // Cargar Habitaciones de BD
+    // -----------------------------
     let habitacionesBD = [];
+    let usuarioActual = null;
+
+    try {
+        const raw = sessionStorage.getItem("usuarioActual");
+        usuarioActual = raw ? JSON.parse(raw) : null;
+    } catch {}
 
     try {
         const db = await abrirBD();
-        habitacionesBD = await getAllFromStore(db, STORE_HABITACION);
+        let todas = await getAllFromStore(db, STORE_HABITACION);
+
+        // ❌ OCULTAR habit. propias si eres propietario
+        if (usuarioActual?.email) {
+            const miEmail = usuarioActual.email;
+            todas = todas.filter(h => h.emailPropietario !== miEmail);
+        }
+
+        habitacionesBD = todas;
     } catch (e) {
         console.warn("Fallo BD, usando mock.");
         habitacionesBD = HABITACIONES_MOCK;
     }
+
 
     // -----------------------------
     // Mostrar detalle
