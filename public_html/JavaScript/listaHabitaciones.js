@@ -1,6 +1,5 @@
 // JavaScript/listaHabitaciones.js
 // Lista de habitaciones reales (IndexedDB) + panel detalle + filtros ciudad/fecha
-// EXCLUYE habitaciones propias del propietario logueado
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -84,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
             req.onerror = (e) => {
                 console.error("Error leyendo habitaciones:", e.target.error);
                 habitacionesCache = [];
-                resolve();
+                resolve(); // no rompas la página, solo no hay datos
             };
         });
     }
@@ -113,14 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // ***************************************
-        // EXCLUIR HABITACIONES PROPIAS DEL PROPIETARIO
-        // ***************************************
-        if (estaLogeado && usuarioActual?.email) {
+        // ********************************************
+        // * FILTRO: EXCLUIR HABITACIONES PROPIAS     *
+        // ********************************************
+        if (estaLogeado && usuarioActual && usuarioActual.email) {
             const emailPropietario = usuarioActual.email;
             resultado = resultado.filter(h => h.emailPropietario !== emailPropietario);
         }
-        // ***************************************
+        // ********************************************
 
         pintarHabitaciones(resultado);
     }

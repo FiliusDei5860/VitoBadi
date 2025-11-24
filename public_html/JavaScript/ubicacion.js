@@ -1,8 +1,6 @@
 // =========================================
-// JavaScript/ubicacion.js - BÚSQUEDA MANUAL POR GEOLOCALIZACIÓN
-// - Carga habitaciones desde IndexedDB
-// - Muestra en mapa y lista
-// - EXCLUYE habitaciones del propietario logueado
+// JavaScript/ubicacion.js - VERSIÓN BÚSQUEDA MANUAL (CORREGIDO Y ORDENADO)
+// El enlace de la tarjeta y el InfoWindow apunta a SolicitarGeolocalizacion.html
 // =========================================
 
 // Variables Globales
@@ -14,7 +12,7 @@ let habitacionesMapa = []; // Datos de IndexedDB
 const VITORIA_COORDS = { lat: 42.8467, lng: -2.6716 }; // Coordenadas de Vitoria
 
 // ********************************************
-// * DATOS DE USUARIO / LOGIN *
+// * LOGIN / USUARIO ACTUAL *
 // ********************************************
 let usuarioActual = null;
 let estaLogeado = false;
@@ -33,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnBuscar   = document.getElementById("btnBuscar"); 
 
     // =========================
-    //  Leer usuario logeado (desde sessionStorage)
+    //  Leer usuario logeado
     // =========================
     try {
         const stored = sessionStorage.getItem("usuarioActual");
@@ -186,25 +184,28 @@ function showMarkersInRadius(center, radiusMeters) {
 
         // InfoWindow
         const infoWindow = new google.maps.InfoWindow({
-            content: `<div style="text-align:center;">
-                        <b>${h.name}</b><br>
-                        ${h.direccion}<br>
-                        <strong style="color:#4f46e5">${h.precio} €</strong><br>
-                        <a href="SolicitarGeolocalizacion.html?id=${h.idHabitacion}">Ver detalles</a>
-                      </div>`
+            content: `
+                <div style="text-align:center;">
+                    <b>${h.name}</b><br>
+                    ${h.direccion}<br>
+                    <strong style="color:#4f46e5">${h.precio} €</strong><br>
+                    <a href="SolicitarGeolocalizacion.html?id=${h.idHabitacion}">
+                        Ver detalles
+                    </a>
+                </div>`
         });
         marker.addListener('click', () => {
             infoWindow.open({ anchor: marker, map });
         });
 
-        // Añadir tarjeta a la lista de resultados
+        // Tarjeta en la lista
         if (resultsContainer) {
             const card = createResultCard(h);
             resultsContainer.appendChild(card);
         }
     });
 
-    // Mostrar mensaje de no resultados
+    // Mostrar / ocultar mensaje de no resultados
     if (noResultsMessage) {
         if (habitacionesEncontradas.length === 0) {
             noResultsMessage.classList.remove("hidden");
@@ -227,11 +228,11 @@ function cargarHabitacionesMapa(db) {
         let todas = req.result || [];
        
         // ********************************************
-        // * EXCLUIR HABITACIONES PROPIAS DEL PROPIETARIO LOGUEADO *
-        //   (usa emailPropietario, que es como está en db.js)
+        // * FILTRO: EXCLUIR HABITACIONES PROPIAS     *
         // ********************************************
-        if (estaLogeado && usuarioActual?.email) {
+        if (estaLogeado && usuarioActual && usuarioActual.email) {
             const emailPropietario = usuarioActual.email;
+            // ATENCIÓN: en IndexedDB el campo es emailPropietario
             todas = todas.filter(h => h.emailPropietario !== emailPropietario);
         }
         // ********************************************
@@ -247,7 +248,7 @@ function cargarHabitacionesMapa(db) {
                 idHabitacion: h.idHabitacion
             }));
            
-        // Si ya hay mapa y marcador de usuario, refrescamos resultados
+        // Si el mapa ya está listo, refrescamos marcadores con posición actual
         if (map && userMarker) {
              const currentPos = userMarker.getPosition();
              const currentRadius = userCircle ? userCircle.getRadius() : 1000;
@@ -280,6 +281,10 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+/**
+ * Crea la tarjeta de resultado y añade el evento de clic para navegar.
+ * @param {Object} h Objeto habitación con idHabitacion
+ */
 function createResultCard(h) {
     const card = document.createElement("div");
     card.className = "p-3 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-gray-50";
