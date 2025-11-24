@@ -74,6 +74,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         habitacionesBD = HABITACIONES_MOCK;
     }
 
+    // ======================================================
+// RELLENAR SELECT DE CIUDADES
+// ======================================================
+    if (selectCiudad) {
+        const ciudadesUnicas = [...new Set(
+                    habitacionesBD
+                    .map(h => h.ciudad)
+                    .filter(c => c && c.trim() !== "")
+                    )];
+
+        ciudadesUnicas.sort(); // ordenar alfabéticamente
+
+        ciudadesUnicas.forEach(ciudad => {
+            const opt = document.createElement("option");
+            opt.value = ciudad;
+            opt.textContent = ciudad;
+            selectCiudad.appendChild(opt);
+        });
+    }
+
 
     // -----------------------------
     // Mostrar detalle
@@ -219,7 +239,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Eventos
-    btnBuscar.addEventListener("click", filtrarHabitaciones);
+    btnBuscar.addEventListener("click", () => {
+        // Guardar preferencias
+        sessionStorage.setItem("filtroCiudad", selectCiudad.value);
+        sessionStorage.setItem("filtroFecha", inputFecha.value);
+
+        filtrarHabitaciones();
+    });
 
     // Mostrar todo al entrar
     pintarHabitaciones(habitacionesBD);
