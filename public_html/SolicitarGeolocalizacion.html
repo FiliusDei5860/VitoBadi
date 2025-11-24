@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Detalle habitación (Geolocalización) – VitoBadi</title>
+
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="Css/style.css" />
+    </head>
+
+    <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
+
+        <!-- NAVBAR (componente) -->
+        <div id="navbar-placeholder"></div>
+
+        <main class="room-detail-main flex-grow">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+                <header class="room-detail-header">
+                    <div>
+                        <h1 id="detalle-titulo" class="main-title room-detail-title">Habitación</h1>
+                        <p id="detalle-subtitulo" class="subtitle-center">Cargando detalle...</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="BusquedaGeolocalizacion.html" class="btn btn-secondary">Volver</a>
+                    </div>
+                </header>
+
+                <section class="room-detail-card">
+                    <!-- Imagen -->
+                    <div class="room-detail-image-wrapper">
+                        <img id="detalle-imagen"
+                             src="./Public_icons/hab1.png"
+                             alt="Imagen habitación"
+                             class="room-detail-image" />
+                    </div>
+
+                    <!-- Info -->
+                    <div class="room-detail-info">
+                        <p><strong>Dirección:</strong> <span id="detalle-direccion">-</span></p>
+                        <p><strong>Ciudad:</strong> <span id="detalle-ciudad">-</span></p>
+                        <p><strong>Precio:</strong> <span id="detalle-precio">-</span></p>
+                        <p><strong>Tamaño:</strong> <span id="detalle-tamano">-</span> m²</p>
+                        <p><strong>Descripción:</strong></p>
+                        <p id="detalle-descripcion" class="text-gray-700">-</p>
+
+                        <div class="mt-6 flex items-center gap-3">
+                            <button id="btn-solicitar" class="btn btn-primary">
+                                Solicitar habitación
+                            </button>
+                            <span id="detalle-msg" class="text-sm text-gray-600"></span>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- FOOTER (componente) -->
+        <div id="footer-placeholder"></div>
+
+        <!-- SCRIPTS -->
+        <script src="JavaScript/db.js"></script>
+        <script src="JavaScript/DetalleHabitacionGeolocalizacion.js"></script>
+        <script src="JavaScript/load_components.js"></script>
+
+    </body>
+</html>

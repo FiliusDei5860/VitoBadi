@@ -1,6 +1,6 @@
 // =========================================
-// JavaScript/ubicacion.js - VERSIÓN BÚSQUEDA MANUAL (CORREGIDO Y ORDENADO)
-// El enlace de la tarjeta y el InfoWindow apunta a SolicitarGeolocalizacion.html
+// JavaScript/ubicacion.js
+// Búsqueda manual con mapa + lista resultados con imagen
 // =========================================
 
 // Variables Globales
@@ -9,30 +9,37 @@ let userMarker;
 let userCircle;
 let currentMarkers = [];
 let habitacionesMapa = []; // Datos de IndexedDB
-const VITORIA_COORDS = {lat: 42.8467, lng: -2.6716}; // Coordenadas de Vitoria
+const VITORIA_COORDS = {lat: 42.8467, lng: -2.6716};
 
-// ********************************************
-// * NUEVAS VARIABLES GLOBALES PARA LOGIN *
-// ********************************************
+// Login
 let usuarioActual = null;
 let estaLogeado = false;
-// ********************************************
+
+// ------------------------------
+// Helpers
+// ------------------------------
+function normalizarSrc(raw) {
+    if (!raw)
+        return null;
+    if (raw.startsWith("data:"))
+        return raw;                 // ya es dataURL
+    if (raw.startsWith("http") || raw.startsWith("./") || raw.startsWith("/"))
+        return raw;
+    // base64 pelado
+    return `data:image/jpeg;base64,${raw}`;
+}
 
 // ---------------------------------------------------------
 // INICIALIZACIÓN Y EVENTOS
 // ---------------------------------------------------------
-
 document.addEventListener("DOMContentLoaded", () => {
-    // Referencias a los inputs del usuario
     const latInput = document.getElementById("txtLat");
     const lngInput = document.getElementById("txtLng");
     const radioSlider = document.getElementById("radioBusqueda");
     const radioValue = document.getElementById("radioValue");
     const btnBuscar = document.getElementById("btnBuscar");
 
-    // =========================
-    //  Leer usuario logeado (Copia de ListaHabitaciones.js)
-    // =========================
+    // Leer usuario logeado
     try {
         const stored = sessionStorage.getItem("usuarioActual");
         if (stored) {
@@ -40,11 +47,10 @@ document.addEventListener("DOMContentLoaded", () => {
             estaLogeado = !!usuarioActual?.email;
         }
     } catch (e) {
-        console.warn("No se ha podido leer usuarioActual de sessionStorage:", e);
+        console.warn("No se ha podido leer usuarioActual:", e);
     }
-    // =========================
 
-    // Configuración del Slider
+    // Slider
     if (radioSlider && radioValue) {
         radioValue.textContent = radioSlider.value + " KM";
         radioSlider.addEventListener("input", function () {
@@ -52,52 +58,42 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 1. Inicializar el mapa al centro de Vitoria al cargar
+    // Mapa inicial
     initMap(VITORIA_COORDS.lat, VITORIA_COORDS.lng, 1);
 
-    // 2. Cargar habitaciones desde IndexedDB
-    // NOTA: Asegúrate de que 'abrirBD' y 'STORE_HABITACION' estén en db.js
+    // Cargar habitaciones IndexedDB
     abrirBD()
-            .then((db) => cargarHabitacionesMapa(db))
+            .then(db => cargarHabitacionesMapa(db))
             .catch(err => console.error("Error abriendo BD en ubicacion:", err));
 
-    // 3. Evento de Búsqueda Manual
+    // Buscar manual
     if (btnBuscar) {
-        btnBuscar.addEventListener("click", realizarBusqueda);
-    }
+        btnBuscar.addEventListener("click", () => {
+            const latStr = latInput.value;
+            const lngStr = lngInput.value;
+            const km = parseFloat(radioSlider.value);
 
-    function realizarBusqueda() {
-        const latStr = latInput.value;
-        const lngStr = lngInput.value;
-        const km = parseFloat(radioSlider.value);
-
-        // Validación
-        if (!latStr || !lngStr) {
-            alert("Por favor, introduce valores válidos para Latitud y Longitud.");
-            return;
-        }
-
-        const lat = parseFloat(latStr);
-        const lng = parseFloat(lngStr);
-
-        if (isNaN(lat) || isNaN(lng)) {
-            alert("Los valores de Latitud y Longitud deben ser números válidos.");
-            return;
-        }
-
-        // Ejecutar la lógica de mapa y búsqueda con las coordenadas del usuario
-        initMap(lat, lng, km);
+            if (!latStr || !lngStr) {
+                alert("Introduce Latitud y Longitud.");
+                return;
+            }
+            const lat = parseFloat(latStr);
+            const lng = parseFloat(lngStr);
+            if (isNaN(lat) || isNaN(lng)) {
+                alert("Latitud/Longitud deben ser números.");
+                return;
+            }
+            initMap(lat, lng, km);
+        });
     }
 });
 
 // ---------------------------------------------------------
-// LÓGICA DE MAPA Y BÚSQUEDA
+// MAPA
 // ---------------------------------------------------------
-
 function initMap(lat, lng, radiusKm) {
     const radiusMeters = (radiusKm || 1) * 1000;
 
-    // Crear/Centrar el mapa
     if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
             center: {lat, lng},
@@ -108,15 +104,13 @@ function initMap(lat, lng, radiusKm) {
         map.setZoom(14);
     }
 
-    // Marcador usuario (Azul)
+    // Marker usuario
     if (!userMarker) {
         userMarker = new google.maps.Marker({
             position: {lat, lng},
             map,
             title: "Ubicación de búsqueda",
-            icon: {
-                url: "http://googlemaps.google.com/mapfiles/ms/icons/blue-dot.png" // Icono azul
-            }
+            icon: {url: "http://googlemaps.google.com/mapfiles/ms/icons/blue-dot.png"}
         });
     } else {
         userMarker.setPosition({lat, lng});
@@ -135,7 +129,6 @@ function initMap(lat, lng, radiusKm) {
     userCircle.setCenter({lat, lng});
     userCircle.setRadius(radiusMeters);
 
-    // Ajustar zoom para que quepa el círculo
     map.fitBounds(userCircle.getBounds());
 
     showMarkersInRadius({lat, lng}, radiusMeters);
@@ -145,77 +138,60 @@ function showMarkersInRadius(center, radiusMeters) {
     const resultsContainer = document.getElementById("results-list");
     const noResultsMessage = document.getElementById("no-results");
 
-    // Limpiar marcadores y resultados antiguos
     currentMarkers.forEach(m => m.setMap(null));
     currentMarkers = [];
-    if (resultsContainer) {
+    if (resultsContainer)
         resultsContainer.innerHTML = "";
-    }
 
-    // 1. Filtrar las habitaciones dentro del radio
     let habitacionesEncontradas = [];
     habitacionesMapa.forEach(h => {
-        const distance = haversineDistance(
-                center.lat, center.lng,
-                h.lat, h.lng
-                );
-
+        const distance = haversineDistance(center.lat, center.lng, h.lat, h.lng);
         if (distance <= radiusMeters) {
             h.distance = distance;
             habitacionesEncontradas.push(h);
         }
     });
 
-    // 2. ORDENAR DE MENOR A MAYOR PRECIO
     habitacionesEncontradas.sort((a, b) => {
         const precioA = a.precio != null ? Number(a.precio) : Infinity;
         const precioB = b.precio != null ? Number(b.precio) : Infinity;
         return precioA - precioB;
     });
 
-    // 3. Crear marcadores y tarjetas
     habitacionesEncontradas.forEach(h => {
-        // Crear marcador de Habitación (Rojo)
         const marker = new google.maps.Marker({
-            position: {lat: parseFloat(h.lat), lng: parseFloat(h.lng)},
+            position: {lat: h.lat, lng: h.lng},
             map,
             title: h.name,
-            icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" // Icono rojo
+            icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
         });
         currentMarkers.push(marker);
 
-        // Crear InfoWindow (Popup) al hacer click
         const infoWindow = new google.maps.InfoWindow({
-            // Enlace al nuevo HTML
-            content: `<div style="text-align:center;"><b>${h.name}</b><br>${h.direccion}<br><strong style="color:#4f46e5">${h.precio} €</strong><br><a href="SolicitarGeolocalizacion.html?id=${h.idHabitacion}">Ver detalles</a></div>`
+            content: `
+              <div style="text-align:center;">
+                <b>${h.name}</b><br>
+                ${h.direccion}<br>
+                <strong style="color:#4f46e5">${h.precio} €</strong><br>
+                <a href="SolicitarGeolocalizacion.html?id=${h.idHabitacion}">Ver detalles</a>
+              </div>`
         });
-        marker.addListener('click', () => {
-            infoWindow.open({anchor: marker, map});
-        });
+        marker.addListener("click", () => infoWindow.open({anchor: marker, map}));
 
-        // Añadir tarjeta a la lista de resultados
         if (resultsContainer) {
-            const card = createResultCard(h);
-            resultsContainer.appendChild(card);
+            resultsContainer.appendChild(createResultCard(h));
         }
     });
 
-    // Mostrar mensaje de no resultados
     if (noResultsMessage) {
-        if (habitacionesEncontradas.length === 0) {
-            noResultsMessage.classList.remove("hidden");
-        } else {
-            noResultsMessage.classList.add("hidden");
-        }
+        noResultsMessage.classList.toggle("hidden", habitacionesEncontradas.length !== 0);
     }
 }
 
 // ---------------------------------------------------------
-// UTILIDADES (BD, DISTANCIA Y TARJETA)
+// BD + UTILIDADES
 // ---------------------------------------------------------
-
 function cargarHabitacionesMapa(db) {
-    // Asegúrate de que STORE_HABITACION esté definido en db.js o globalmente
     const tx = db.transaction(STORE_HABITACION, "readonly");
     const store = tx.objectStore(STORE_HABITACION);
     const req = store.getAll();
@@ -223,14 +199,11 @@ function cargarHabitacionesMapa(db) {
     req.onsuccess = () => {
         let todas = req.result || [];
 
-        // ********************************************
-        // * NUEVO FILTRO: EXCLUIR HABITACIONES PROPIAS *
-        // ********************************************
+        // Excluir habitaciones propias si logeado
         if (estaLogeado) {
-            const emailArrendador = usuarioActual.email;
-            todas = todas.filter(h => h.emailPropietario !== emailArrendador);
+            const emailProp = usuarioActual.email;
+            todas = todas.filter(h => h.emailPropietario !== emailProp);
         }
-        // ********************************************
 
         habitacionesMapa = todas
                 .filter(h => h.latitud != null && h.longitud != null)
@@ -240,73 +213,88 @@ function cargarHabitacionesMapa(db) {
                         name: h.titulo || h.direccion || `Hab ${h.idHabitacion}`,
                         precio: h.precio,
                         direccion: h.direccion || "",
-                        idHabitacion: h.idHabitacion // Asegúrate de tener el ID
+                        idHabitacion: h.idHabitacion,
+                        imagenes: h.imagenes || null, // <<< CLAVE
+                        imagen: h.imagen || null        // por si tenéis una sola
                     }));
 
-        // Forzar una nueva búsqueda en el mapa con los datos filtrados
-        // Esto es necesario si los datos se cargan después de que initMap ya se ejecutó con el centro de Vitoria
         if (map && userMarker) {
             const currentPos = userMarker.getPosition();
-            // El radio se toma del círculo ya dibujado o se asume 1000m si no hay círculo
             const currentRadius = userCircle ? userCircle.getRadius() : 1000;
-            showMarkersInRadius({lat: currentPos.lat(), lng: currentPos.lng()}, currentRadius);
-        } else {
-            // Si el mapa aún no está listo, se llamará a showMarkersInRadius al final de initMap.
+            showMarkersInRadius(
+                    {lat: currentPos.lat(), lng: currentPos.lng()},
+                    currentRadius
+                    );
         }
     };
 
-    req.onerror = (e) => {
-        console.error("Error leyendo habitaciones para mapa:", e.target.error);
+    req.onerror = e => {
+        console.error("Error leyendo habitaciones:", e.target.error);
         habitacionesMapa = [];
     };
 }
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
-    function toRad(x) {
-        return x * Math.PI / 180;
-    }
-
-    const R = 6371000; // metros
+    const toRad = x => x * Math.PI / 180;
+    const R = 6371000;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
     const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.sin(dLat / 2) ** 2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+            Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/**
- * Crea la tarjeta de resultado y añade el evento de clic para navegar.
- * @param {Object} h Objeto habitación con idHabitacion
- */
 function createResultCard(h) {
-    const card = document.createElement("div");
-    card.className = "p-3 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-gray-50";
+    const card = document.createElement("article");
+    card.className = "solicitud-card cursor-pointer";
 
-    const titulo = document.createElement("h4");
-    titulo.className = "text-sm font-semibold text-indigo-700";
+    const infoGroup = document.createElement("div");
+    infoGroup.className = "solicitud-info-group";
+
+    const imgDiv = document.createElement("div");
+    imgDiv.className = "solicitud-imagen-placeholder";
+
+    let imgSrc = null;
+    if (Array.isArray(h.imagenes) && h.imagenes.length > 0) {
+        imgSrc = h.imagenes[0];
+    } else if (h.imagen) {
+        imgSrc = h.imagen;
+    }
+    imgSrc = normalizarSrc(imgSrc);
+
+    if (imgSrc) {
+        imgDiv.style.backgroundImage = `url('${imgSrc}')`;
+        imgDiv.style.backgroundSize = "cover";
+        imgDiv.style.backgroundPosition = "center";
+        imgDiv.style.backgroundRepeat = "no-repeat";
+    }
+
+    if (!estaLogeado) {
+        imgDiv.classList.add("room-card-image-blurred");
+    }
+
+    const textWrap = document.createElement("div");
+
+    const titulo = document.createElement("h3");
+    titulo.className = "solicitud-titulo text-indigo-700";
     titulo.textContent = h.name;
 
     const direccion = document.createElement("p");
-    direccion.className = "text-xs text-gray-500";
-    direccion.textContent = h.direccion || "[Dirección no disponible]";
+    direccion.className = "solicitud-secundario";
+    direccion.textContent = h.direccion || "-";
 
     const precio = document.createElement("p");
-    precio.className = "text-sm font-bold text-green-600 mt-1";
-    precio.textContent =
-            h.precio != null ? `${h.precio} €` : "Precio no disponible";
+    precio.className = "solicitud-secundario font-bold text-green-600";
+    precio.textContent = h.precio != null ? `${h.precio} €/mes` : "-";
 
-    card.appendChild(titulo);
-    card.appendChild(direccion);
-    card.appendChild(precio);
+    textWrap.append(titulo, direccion, precio);
+    infoGroup.append(imgDiv, textWrap);
+    card.appendChild(infoGroup);
 
-    // Redirección al clic
     card.addEventListener("click", () => {
-        if (h.idHabitacion != null) {
-            window.location.href = `SolicitarGeolocalizacion.html?id=${h.idHabitacion}`;
-        }
+        window.location.href = `SolicitarGeolocalizacion.html?id=${h.idHabitacion}`;
     });
 
     return card;

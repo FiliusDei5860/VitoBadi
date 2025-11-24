@@ -1,105 +1,92 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VitoBadi - Búsqueda por Geolocalización</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VitoBadi - Búsqueda por Geolocalización</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="Css/style.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="Css/style.css">
 
-    <!-- Google Maps -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWfEboKAvFexFjk3QH7-fdBTO7jc4xHfo"></script>
-</head>
+        <!-- GOOGLE MAPS -->
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWfEboKAvFexFjk3QH7-fdBTO7jc4xHfo"></script>
+    </head>
 
-<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
+    <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
-    <!-- NAVBAR DINÁMICO -->
-    <div id="navbar-placeholder"></div>
+        <!-- NAVBAR SE CARGA AQUÍ -->
+        <div id="navbar-placeholder"></div>
 
-    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-7xl flex-grow">
-        <h2 class="main-title text-3xl font-bold text-indigo-700 text-center mb-2">
-            Búsqueda por Coordenadas
-        </h2>
-        <p class="subtitle-center text-center text-gray-600 mb-6">
-            Introduce la Latitud, Longitud y el radio para buscar habitaciones.
-        </p>
+        <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-7xl flex-grow">
+            <h2 class="main-title text-3xl font-bold text-indigo-700 text-center mb-2">Búsqueda por Coordenadas</h2>
+            <p class="subtitle-center text-center text-gray-600 mb-6">
+                Introduce la Latitud, Longitud y el radio para buscar habitaciones.
+            </p>
 
-        <!-- Barra de filtros -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
 
-                <!-- Lat/Lng -->
-                <div class="space-y-3">
+                    <div class="space-y-3">
+                        <div>
+                            <label for="txtLat" class="block text-sm font-medium text-gray-700">Latitud:</label>
+                            <input type="number" id="txtLat" step="any" placeholder="Ej: 42.8467"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="txtLng" class="block text-sm font-medium text-gray-700">Longitud:</label>
+                            <input type="number" id="txtLng" step="any" placeholder="Ej: -2.6716"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                    </div>
+
+                    <div class="search-filter-group md:col-span-2">
+                        <label for="radioBusqueda" class="text-sm font-medium text-gray-700 mb-2">
+                            Radio: <span id="radioValue" class="font-bold text-indigo-600">2.5 KM</span>
+                        </label>
+                        <input type="range" id="radioBusqueda" min="0.1" max="5" value="2.5" step="0.1"
+                               class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-indigo-600">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0.1 KM</span><span>5.0 KM</span>
+                        </div>
+                    </div>
+
                     <div>
-                        <label for="txtLat" class="block text-sm font-medium text-gray-700">Latitud:</label>
-                        <input type="number" id="txtLat" step="any" placeholder="Ej: 42.8467"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                                      focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
+                        <button id="btnBuscar"
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded">
+                            BUSCAR
+                        </button>
                     </div>
-                    <div>
-                        <label for="txtLng" class="block text-sm font-medium text-gray-700">Longitud:</label>
-                        <input type="number" id="txtLng" step="any" placeholder="Ej: -2.6716"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                                      focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border">
-                    </div>
-                </div>
 
-                <!-- Radio -->
-                <div class="search-filter-group md:col-span-2">
-                    <label for="radioBusqueda" class="text-sm font-medium text-gray-700 mb-2">
-                        Radio de Búsqueda:
-                        <span id="radioValue" class="font-bold text-indigo-600">2.5 KM</span>
-                    </label>
-                    <input type="range" id="radioBusqueda" min="0.1" max="5" value="2.5" step="0.1"
-                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                    <div class="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>0.1 KM</span>
-                        <span>5.0 KM</span>
-                    </div>
-                </div>
-
-                <!-- Botón -->
-                <div>
-                    <button id="btnBuscar"
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded
-                                   focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
-                        BUSCAR
-                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Mapa + resultados -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 h-full">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 h-full">
 
-            <!-- Mapa -->
-            <div class="md:col-span-2 h-[500px] bg-gray-200 rounded-lg overflow-hidden shadow z-0">
-                <div id="map" class="w-full h-full z-0 map-container"></div>
+                <div class="md:col-span-2 h-[500px] bg-gray-200 rounded-lg overflow-hidden shadow">
+                    <div id="map" class="w-full h-full"></div>
+                </div>
+
+                <aside class="bg-white p-4 rounded-lg shadow h-[500px] overflow-y-auto">
+                    <h3 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4 sticky top-0 bg-white">
+                        Resultados Cercanos
+                    </h3>
+
+                    <div id="results-list" class="space-y-4"></div>
+
+                    <p id="no-results" class="text-gray-500 italic text-center mt-10 hidden">
+                        No se encontraron resultados en este radio.
+                    </p>
+                </aside>
             </div>
+        </main>
 
-            <!-- Resultados -->
-            <aside class="bg-white p-4 rounded-lg shadow h-[500px] overflow-y-auto">
-                <h3 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4 sticky top-0 bg-white">
-                    Resultados Cercanos
-                </h3>
+        <!-- FOOTER SE CARGA AQUÍ -->
+        <div id="footer-placeholder"></div>
 
-                <div id="results-list" class="space-y-4"></div>
+        <!-- SCRIPTS (ORDEN CORRECTO) -->
+        <script src="JavaScript/db.js"></script>
+        <script src="JavaScript/load_components.js"></script>
+        <script src="JavaScript/ubicacion.js"></script>
 
-                <p id="no-results" class="text-gray-500 italic text-center mt-10 hidden">
-                    No se encontraron resultados en este radio.
-                </p>
-            </aside>
-        </div>
-    </main>
-
-    <!-- FOOTER DINÁMICO -->
-    <div id="footer-placeholder"></div>
-
-    <!-- SCRIPTS (orden correcto, sin duplicados) -->
-    <script src="JavaScript/db.js"></script>
-    <script src="JavaScript/ubicacion.js"></script>
-    <script src="JavaScript/load_components.js"></script>
-
-</body>
+    </body>
 </html>

@@ -1,6 +1,11 @@
 // JavaScript/listaHabitaciones.js
 // Lista de habitaciones + panel detalle en la misma vista
-
+function normalizarSrc(raw) {
+    if (!raw) return null;
+    if (raw.startsWith("data:")) return raw;
+    if (raw.startsWith("http") || raw.startsWith("./") || raw.startsWith("/")) return raw;
+    return `data:image/jpeg;base64,${raw}`;
+}
 // -------------------------------
 // LOGIN REAL
 // -------------------------------
@@ -94,11 +99,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         detLat.textContent    = habitacion.latitud;
         detLong.textContent   = habitacion.longitud;
 
-        if (habitacion.imagenes && habitacion.imagenes.length > 0) {
-            detImg.src = habitacion.imagenes[0];
-        } else {
-            detImg.src = "./Public_icons/hab1.png";
+        let imgDet = null;
+        if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
+            imgDet = habitacion.imagenes[0];
+        } else if (habitacion.imagen) {
+            imgDet = habitacion.imagen;
         }
+        imgDet = normalizarSrc(imgDet);
+
+        detImg.src = imgDet || "./Public_icons/hab1.png";
 
         detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
 
@@ -162,9 +171,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             imgPlaceholder.className = "solicitud-imagen-placeholder";
 
             let imgSrc = null;
-            if (habitacion.imagenes && habitacion.imagenes.length > 0) {
+            if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
                 imgSrc = habitacion.imagenes[0];
+            } else if (habitacion.imagen) {
+                imgSrc = habitacion.imagen;
             }
+            imgSrc = normalizarSrc(imgSrc);
 
             if (imgSrc) {
                 imgPlaceholder.style.backgroundImage = `url('${imgSrc}')`;
