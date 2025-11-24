@@ -1,5 +1,6 @@
 // JavaScript/listaHabitaciones.js
 // Lista de habitaciones reales (IndexedDB) + panel detalle + filtros ciudad/fecha
+// EXCLUYE habitaciones propias del propietario logueado
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -83,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             req.onerror = (e) => {
                 console.error("Error leyendo habitaciones:", e.target.error);
                 habitacionesCache = [];
-                resolve(); // no rompas la página, solo no hay datos
+                resolve();
             };
         });
     }
@@ -97,21 +98,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let resultado = habitacionesCache.slice();
 
+        // Filtro por ciudad
         if (ciudad) {
             resultado = resultado.filter(h => h.ciudad === ciudad);
         }
 
+        // Filtro por fecha disponibleDesde
         if (fecha) {
-            // disponibleDesde puede ser "", null o "YYYY-MM-DD"
             resultado = resultado.filter(h => {
                 if (!h.disponibleDesde || h.disponibleDesde === "") {
-                    // Si no se ha establecido fecha de disponibilidad,
-                    // la consideramos disponible siempre
                     return true;
                 }
                 return h.disponibleDesde <= fecha;
             });
         }
+
+        // ***************************************
+        // EXCLUIR HABITACIONES PROPIAS DEL PROPIETARIO
+        // ***************************************
+        if (estaLogeado && usuarioActual?.email) {
+            const emailPropietario = usuarioActual.email;
+            resultado = resultado.filter(h => h.emailPropietario !== emailPropietario);
+        }
+        // ***************************************
 
         pintarHabitaciones(resultado);
     }
@@ -262,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================
-    //  Crear solicitud en BD (opcional pero útil)
+    //  Crear solicitud en BD
     // =========================
     function crearSolicitudParaHabitacion(habitacion) {
         if (!dbGlobal || !usuarioActual) {
