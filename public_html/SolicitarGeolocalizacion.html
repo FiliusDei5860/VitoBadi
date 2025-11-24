@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle habitación – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="Css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <header class="main-header bg-white shadow-md">
+     <!--ésta sección de abajo es para insertar la navbar -->
+       <!-- 🔵 NAVBAR AUTOMÁTICA -->
+    <div id="navbar-placeholder"></div>
+<!--ésta sección de arriba es para insertar la navbar -->
+
+    </header>
+
+    <main class="room-detail-main flex-grow container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+
+        <div class="room-detail-header mt-8 mb-6 flex justify-between items-center"> <button type="button" class="btn bg-gray-200 text-gray-700 hover:bg-gray-300 py-2 px-4 rounded transition duration-150 ease-in-out" id="btn-volver">
+                ← Volver a la búsqueda
+            </button>
+
+            <h1 class="main-title room-detail-title text-2xl font-bold text-indigo-700">
+                Detalle de la habitación
+            </h1>
+        </div>
+
+        <section class="room-detail-card bg-white p-6 rounded-lg shadow-xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div class="room-detail-image-wrapper lg:col-span-2">
+                <img id="hab-imagen" class="w-full h-80 object-cover rounded-lg shadow-md"
+                    src="./Public_icons/VitoBadiIcon.jpg"
+                    alt="Imagen habitación">
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-xl font-semibold border-b pb-2 text-gray-800">Detalles</h3>
+                <div class="room-detail-info space-y-2 text-sm text-gray-600">
+                    <p><strong>Dirección:</strong> <span id="hab-direccion" class="font-medium text-gray-800">–</span></p>
+                    <p><strong>Ciudad:</strong> <span id="hab-ciudad">–</span></p>
+                    <p><strong>Precio:</strong> <span id="hab-precio" class="font-bold text-green-600 text-lg">–</span></p>
+                    <p><strong>Latitud:</strong> <span id="hab-latitud">–</span></p>
+                    <p><strong>Longitud:</strong> <span id="hab-longitud">–</span></p>
+                    <p><strong>Estado:</strong> <span id="hab-estado" class="font-medium text-red-500">–</span></p>
+                </div>
+
+                <div class="pt-4 border-t mt-4">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-700">¿Interesado?</h3>
+                    <button id="btnSolicitar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                        Solicitar Habitación
+                    </button>
+                    <p id="msg-login" class="text-xs text-red-500 mt-2 hidden">
+                        Debes iniciar sesión para poder solicitar esta habitación. Redirigiendo...
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-sm">
+            <p>© 2025 VitoBadi. Todos los derechos reservados.</p>
+            <div class="space-x-4">
+                <a href="aviso_legal.html" class="hover:text-indigo-400">Aviso Legal</a>
+                <a href="politica_privacidad.html" class="hover:text-indigo-400">Política de Privacidad</a>
+                <a href="contacto.html" class="hover:text-indigo-400">Contacto</a>
+            </div>
+        </div>
+    </footer>
+    <script src="Logout.js"></script>
+    <script src="JavaScript/db.js"></script>
+    <script src="JavaScript/DetalleHabitacionGeolocalizacion.js"></script> 
+    <script src="JavaScript/load_components.js"></script>
+    <script src="JavaScript/navbarUser.js"></script>
+
+</body>
+
+</html>

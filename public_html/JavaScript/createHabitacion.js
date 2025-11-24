@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputImagenes  = document.getElementById("imagenes");
     const dropZone       = document.getElementById("drop-zone");
     const previewContainer = document.getElementById("preview-container");
+    const inputLat       = document.getElementById("latitud");
+    const inputLon       = document.getElementById("longitud");
+
 
     if (!form) return;
 
@@ -156,16 +159,21 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (_) {}
 
         // Datos del formulario
-        const titulo  = (inputTitulo?.value || "").trim();
-        const desc    = (inputDesc?.value   || "").trim();
-        const precio  = Number(inputPrecio?.value || 0);
-        const dir     = (inputDir?.value    || "").trim();
-        const tamanio = (inputTam?.value    || "").trim();
+        const titulo   = (inputTitulo?.value || "").trim();
+        const desc     = (inputDesc?.value   || "").trim();
+        const precio   = Number(inputPrecio?.value || 0);
+        const dir      = (inputDir?.value    || "").trim();
+        const tamanio  = (inputTam?.value    || "").trim();
+        const latValor = (inputLat?.value    || "").trim();
+        const lonValor = (inputLon?.value    || "").trim();
 
-        if (!dir || !precio) {
-            alert("Como mínimo debes indicar dirección y precio.");
+        if (!dir || !precio || !latValor || !lonValor) {
+            alert("Debes indicar como mínimo dirección, precio, latitud y longitud.");
             return;
         }
+
+        const latitud  = Number(latValor);
+        const longitud = Number(lonValor);
 
         // Imágenes obligatorias
         if (!selectedFiles || selectedFiles.length === 0) {

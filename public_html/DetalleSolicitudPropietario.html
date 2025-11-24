@@ -12,22 +12,8 @@
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
 <header class="main-header">
-    <div class="container navbar-content">
-        <div class="navbar-logo-group">
-            <img src="./Public_icons/VitoBadiIcon.jpg" class="navbar-logo" alt="Logo">
-            <h1 class="navbar-title">VitoBadi</h1>
-        </div>
-        <nav class="nav-links">
-            <a href="mis_habitaciones.html">Mis Habitaciones</a>
-            <a href="SolicitudesPropietario.html">Solicitudes</a>
-            <a href="MisAlquileres.html">Mis Alquileres</a>
-        </nav>
-        <div class="user-actions">
-            <span>Hola propietario</span>
-            <a class="user-icon">👤</a>
-            <a href="login.html" class="logout-btn">Logout</a>
-        </div>
-    </div>
+    <!-- 🔵 NAVBAR AUTOMÁTICA -->
+    <div id="navbar-placeholder"></div>
 </header>
 
 <main class="container py-8 flex-grow">
@@ -100,6 +86,8 @@
 </footer>
 <script src="JavaScript/db.js"></script>
 <script src="JavaScript/detalleSolicitudPropietario.js"></script>
+<script src="JavaScript/navbarUser.js"></script>
+<script src="JavaScript/load_components.js"></script>
 </body>
 </html>
 

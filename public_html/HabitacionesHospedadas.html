@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis habitaciones donde estoy hospedado – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind + estilos propios -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/style.css">
+</head>
+
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <!-- NAVBAR DINÁMICA -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+
+        <h1 class="main-title mb-4">Mis habitaciones donde estoy hospedado</h1>
+        <p class="subtitle-center mb-8">
+            Aquí se muestran las habitaciones en las que estás o has estado hospedado como inquilino.
+        </p>
+
+        <!-- Contenedor donde pintaremos las tarjetas -->
+        <div id="contenedor-habitaciones-inquilino" class="space-y-4">
+            <!-- JS insertará aquí las tarjetas -->
+        </div>
+
+    </main>
+
+    <!-- FOOTER (dinámico, si usáis footer.html) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- SCRIPTS COMUNES + JS DE ESTA VISTA -->
+    <script src="JavaScript/db.js"></script>
+    <script src="JavaScript/load_components.js"></script>
+    <script src="JavaScript/navbarUser.js"></script>
+    <script src="JavaScript/MisHabitacionesHospedaje.js"></script>
+</body>
+</html>

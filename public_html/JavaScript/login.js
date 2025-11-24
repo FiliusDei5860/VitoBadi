@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const formLogin     = document.getElementById("form-login");
     const inputEmail    = document.getElementById("login-email");
     const inputPassword = document.getElementById("login-password");
-    const msgError      = document.getElementById("login-error"); // puede ser null
+    const msgError      = document.getElementById("login-error");
 
     if (!formLogin) return;
 
@@ -41,20 +41,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function limpiarError() {
+        if (msgError) {
+            msgError.textContent = "";
+            msgError.style.display = "none";
+        }
+    }
+
     // ============================
     //  EVENTO DEL FORMULARIO
     // ============================
     formLogin.addEventListener("submit", (event) => {
-        event.preventDefault(); // Evita recargar la página
+        event.preventDefault();
+        limpiarError();
 
-        const email    = inputEmail    ? inputEmail.value.trim()    : "";
-        const password = inputPassword ? inputPassword.value.trim() : "";
+        const email    = inputEmail.value.trim();
+        const password = inputPassword.value.trim();
 
+        // 1) Campos obligatorios
         if (!email || !password) {
             mostrarError("Debes rellenar todos los campos.");
             return;
         }
 
+        // 2) Formato texto@texto.com
+        const regexEmail = /^[^@]+@[^@]+\.com$/;
+        if (!regexEmail.test(email)) {
+            mostrarError("El email debe ser del tipo texto@texto.com.");
+            return;
+        }
+
+        // 3) BD lista
         if (!dbGlobal) {
             mostrarError("La base de datos todavía no está lista. Inténtalo de nuevo en unos segundos.");
             return;
@@ -70,26 +87,37 @@ document.addEventListener("DOMContentLoaded", () => {
         req.onsuccess = (e) => {
             const usuario = e.target.result;
 
-            // No existe el email en la BD
             if (!usuario) {
                 mostrarError("Usuario no encontrado.");
                 return;
             }
 
-            // Contraseña incorrecta
             if (usuario.password !== password) {
                 mostrarError("Contraseña incorrecta.");
                 return;
             }
 
-            // Login correcto
+            // LOGIN CORRECTO
             console.log("Login correcto para:", usuario);
 
-            // Guardamos usuario en storage (para otras vistas)
-            sessionStorage.setItem("usuarioActual", JSON.stringify(usuario));
+            const usuarioSession = {
+                email:    usuario.email,
+                password: usuario.password,
+                nombre:   usuario.nombre,
+                foto:     usuario.foto
+            };
+
+            // Guardado correcto:
+            // - una tupla con clave email (como pide la profe)
+            // - "usuarioActual" (lo usa tu navbar)
+            sessionStorage.clear();
+            sessionStorage.setItem(usuario.email, JSON.stringify(usuarioSession));
+            sessionStorage.setItem("usuarioActual", JSON.stringify(usuarioSession));
+
+            // Mantenemos tu comportamiento original para la navbar
             localStorage.setItem("usuarioActual", usuario.email);
 
-            // Redirección tras login correcto → a BÚSQUEDA
+            // Redirección tras login
             window.location.href = "Busqueda.html";
         };
 

@@ -13,32 +13,13 @@
 
     <!-- NAVBAR igual que el resto -->
     <header class="main-header">
-        <div class="container navbar-content">
-
-            <div class="navbar-logo-group">
-                <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo">
-                <h1 class="navbar-title">VitoBadi</h1>
-            </div>
-
-            <nav class="nav-links">
-                <a href="ListaHabitaciones.html">Buscar</a>
-                <a href="mis_habitaciones.html" class="bg-gray-700 text-white">Mis Habitaciones</a>
-                <a href="SolicitudesPropietario.html">Solicitudes</a>
-                <a href="MisAlquileres.html">Mis Alquileres</a>
-            </nav>
-
-            <div class="user-actions">
-                <span>Hola propietario</span>
-                <a href="perfil.html" class="user-icon">👤</a>
-                <a href="logout.html" class="logout-btn">Logout</a>
-            </div>
-
-        </div>
+       <!-- 🔵 NAVBAR AUTOMÁTICA -->
+    <div id="navbar-placeholder"></div>
     </header>
 
     <!-- CONTENIDO -->
     <main class="container py-8 flex-grow">
-        <h2 class="main-title">Mis habitaciones</h2>
+        <h2 class="main-title">Mis Propiedades</h2>
         <p class="subtitle-center">
             Lista de habitaciones de las que eres propietario, estén o no alquiladas.
         </p>
@@ -80,6 +61,8 @@
 
     <script src="JavaScript/db.js"></script>
     <script src="JavaScript/misHabitaciones.js"></script>
+    <script src="JavaScript/navbarUser.js"></script>
+    <script src="JavaScript/load_components.js"></script>
 </body>
 </html>
 

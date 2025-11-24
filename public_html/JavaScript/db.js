@@ -3,7 +3,7 @@
 
 // Nombre y versión de la BD
 const DB_NAME = "vitobadi01";
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 
 // Nombres de los object stores
 const STORE_USUARIO    = "usuario";
@@ -41,6 +41,7 @@ function abrirBD() {
                     keyPath: "idHabitacion"
                 });
                 store.createIndex("porCiudad", "ciudad", { unique: false });
+                store.createIndex("porEmailPropietario", "emailPropietario", { unique: false });
             }
 
             // --- 3) ALQUILER ---
@@ -93,21 +94,68 @@ const USUARIOS_PRUEBA = [
 ];
 
 const HABITACIONES_PRUEBA = [
-    { idHabitacion: 1,  direccion:"C/ Gorbea 1", ciudad:"Vitoria-Gasteiz", latitud:42.846,longitud:-2.672,precio:320,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
-    { idHabitacion: 2,  direccion:"C/ Gorbea 2", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.673,precio:350,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
-    { idHabitacion: 3,  direccion:"Avda. Gasteiz 10", ciudad:"Vitoria-Gasteiz", latitud:42.845,longitud:-2.670,precio:375,imagen:null,emailPropietario:"ibon.bilbao@gmail.com" },
-    { idHabitacion: 4,  direccion:"Avda. Gasteiz 12", ciudad:"Vitoria-Gasteiz", latitud:42.844,longitud:-2.671,precio:390,imagen:null,emailPropietario:"ibon.bilbao@gmail.com" },
-    { idHabitacion: 5,  direccion:"C/ San Prudencio 5", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.671,precio:310,imagen:null,emailPropietario:"maite.lopez@gmail.com" },
-    { idHabitacion: 6,  direccion:"C/ San Prudencio 8", ciudad:"Vitoria-Gasteiz", latitud:42.848,longitud:-2.672,precio:340,imagen:null,emailPropietario:"maite.lopez@gmail.com" },
-    { idHabitacion: 7,  direccion:"C/ Los Herrán 20", ciudad:"Vitoria-Gasteiz", latitud:42.843,longitud:-2.668,precio:330,imagen:null,emailPropietario:"javier.garcia@gmail.com" },
-    { idHabitacion: 8,  direccion:"C/ Los Herrán 25", ciudad:"Vitoria-Gasteiz", latitud:42.842,longitud:-2.667,precio:360,imagen:null,emailPropietario:"javier.garcia@gmail.com" },
-    { idHabitacion: 9,  direccion:"C/ Francia 3", ciudad:"Vitoria-Gasteiz", latitud:42.846,longitud:-2.674,precio:295,imagen:null,emailPropietario:"nerea.uribe@gmail.com" },
-    { idHabitacion:10,  direccion:"C/ Francia 7", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.675,precio:345,imagen:null,emailPropietario:"nerea.uribe@gmail.com" },
-    { idHabitacion:11,  direccion:"Gran Vía 25", ciudad:"Bilbao", latitud:43.262,longitud:-2.935,precio:420,imagen:null,emailPropietario:"mikel.sarasola@gmail.com" },
-    { idHabitacion:12,  direccion:"C/ Autonomía 14", ciudad:"Bilbao", latitud:43.261,longitud:-2.937,precio:390,imagen:null,emailPropietario:"mikel.sarasola@gmail.com" },
-    { idHabitacion:13,  direccion:"C/ Miraconcha 5", ciudad:"Donostia-San Sebastián", latitud:43.314,longitud:-1.991,precio:480,imagen:null,emailPropietario:"leire.mendizabal@gmail.com" },
-    { idHabitacion:14,  direccion:"C/ Gros 10", ciudad:"Donostia-San Sebastián", latitud:43.323,longitud:-1.981,precio:430,imagen:null,emailPropietario:"andoni.saenz@gmail.com" }
+    // Propietaria: Ane
+    { idHabitacion: 1,  direccion:"C/ Gorbea 1", ciudad:"Vitoria-Gasteiz",
+      latitud:42.846,longitud:-2.672,precio:320,imagen:null,
+      emailPropietario:"ane.arrieta@gmail.com" },
+
+    { idHabitacion: 2,  direccion:"C/ Gorbea 2", ciudad:"Vitoria-Gasteiz",
+      latitud:42.847,longitud:-2.673,precio:350,imagen:null,
+      emailPropietario:"ane.arrieta@gmail.com" },
+
+    // Propietario: Ibon
+    { idHabitacion: 3,  direccion:"Avda. Gasteiz 10", ciudad:"Vitoria-Gasteiz",
+      latitud:42.845,longitud:-2.670,precio:375,imagen:null,
+      emailPropietario:"ibon.bilbao@gmail.com" },
+
+    { idHabitacion: 4,  direccion:"Avda. Gasteiz 12", ciudad:"Vitoria-Gasteiz",
+      latitud:42.844,longitud:-2.671,precio:390,imagen:null,
+      emailPropietario:"ibon.bilbao@gmail.com" },
+
+    // Propietaria: Maite
+    { idHabitacion: 5,  direccion:"C/ San Prudencio 5", ciudad:"Vitoria-Gasteiz",
+      latitud:42.847,longitud:-2.671,precio:310,imagen:null,
+      emailPropietario:"maite.lopez@gmail.com" },
+
+    { idHabitacion: 6,  direccion:"C/ San Prudencio 8", ciudad:"Vitoria-Gasteiz",
+      latitud:42.848,longitud:-2.672,precio:340,imagen:null,
+      emailPropietario:"maite.lopez@gmail.com" },
+
+    // Propietario: Javier
+    { idHabitacion: 7,  direccion:"C/ Los Herrán 20", ciudad:"Vitoria-Gasteiz",
+      latitud:42.843,longitud:-2.668,precio:330,imagen:null,
+      emailPropietario:"javier.garcia@gmail.com" },
+
+    { idHabitacion: 8,  direccion:"C/ Los Herrán 25", ciudad:"Vitoria-Gasteiz",
+      latitud:42.842,longitud:-2.667,precio:360,imagen:null,
+      emailPropietario:"javier.garcia@gmail.com" },
+
+    // Más habitaciones repartidas, pero SIEMPRE de estos 4 propietarios
+    { idHabitacion: 9,  direccion:"C/ Francia 3", ciudad:"Vitoria-Gasteiz",
+      latitud:42.846,longitud:-2.674,precio:295,imagen:null,
+      emailPropietario:"ane.arrieta@gmail.com" },
+
+    { idHabitacion:10,  direccion:"C/ Francia 7", ciudad:"Vitoria-Gasteiz",
+      latitud:42.847,longitud:-2.675,precio:345,imagen:null,
+      emailPropietario:"maite.lopez@gmail.com" },
+
+    { idHabitacion:11,  direccion:"Gran Vía 25", ciudad:"Bilbao",
+      latitud:43.262,longitud:-2.935,precio:420,imagen:null,
+      emailPropietario:"ibon.bilbao@gmail.com" },
+
+    { idHabitacion:12,  direccion:"C/ Autonomía 14", ciudad:"Bilbao",
+      latitud:43.261,longitud:-2.937,precio:390,imagen:null,
+      emailPropietario:"javier.garcia@gmail.com" },
+
+    { idHabitacion:13,  direccion:"C/ Miraconcha 5", ciudad:"Donostia-San Sebastián",
+      latitud:43.314,longitud:-1.991,precio:480,imagen:null,
+      emailPropietario:"ane.arrieta@gmail.com" },
+
+    { idHabitacion:14,  direccion:"C/ Gros 10", ciudad:"Donostia-San Sebastián",
+      latitud:43.323,longitud:-1.981,precio:430,imagen:null,
+      emailPropietario:"ibon.bilbao@gmail.com" }
 ];
+
 
 const ALQUILERES_PRUEBA = [
     { idContrato:1, idHabitacion:1,  emailInquilino:"mikel.sarasola@gmail.com", fechaInicioAlquiler:"2025-01-01", fechaFinAlquiler:"2025-06-30" },

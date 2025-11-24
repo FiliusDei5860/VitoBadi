@@ -2,8 +2,18 @@
 // Solicitudes recibidas POR el propietario actual (IndexedDB)
 
 document.addEventListener("DOMContentLoaded", () => {
-    const cont = document.querySelector("main .space-y-4");
-    if (!cont) return;
+    // Contenedor donde se pintan las tarjetas
+    // Opción A: por id (recomendado)
+    let cont = document.getElementById("contenedor-solicitudes-propietario");
+    // Opción B: como lo tenías, por clase dentro de main
+    if (!cont) {
+        cont = document.querySelector("main .space-y-4");
+    }
+
+    if (!cont) {
+        console.warn("No se ha encontrado el contenedor de solicitudes del propietario.");
+        return;
+    }
 
     let usuarioActual = null;
     try {
@@ -21,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     abrirBD()
         .then(async (db) => {
             const solicitudes = await cargarTodasSolicitudes(db);
+
             if (!solicitudes || solicitudes.length === 0) {
                 cont.innerHTML = "<p>No tienes solicitudes pendientes.</p>";
                 return;
@@ -29,11 +40,17 @@ document.addEventListener("DOMContentLoaded", () => {
             cont.innerHTML = "";
 
             for (const sol of solicitudes) {
+                // Cargar habitación asociada
                 const hab  = await cargarHabitacion(db, sol.idHabitacion);
                 if (!hab || hab.emailPropietario !== usuarioActual.email) {
+                    // No es una solicitud para una habitación de este propietario
                     continue;
                 }
+
+                // Cargar datos del posible inquilino
                 const inquilino = await cargarUsuario(db, sol.emailInquilinoPosible);
+
+                // Crear tarjeta
                 crearCardSolicitudPropietario(cont, sol, hab, inquilino);
             }
 
@@ -47,6 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 });
 
+// =================== AUXILIARES BD ===================
+
 function cargarTodasSolicitudes(db) {
     return new Promise((resolve) => {
         const tx    = db.transaction(STORE_SOLICITUD, "readonly");
@@ -57,6 +76,30 @@ function cargarTodasSolicitudes(db) {
         req.onerror   = () => resolve([]);
     });
 }
+
+function cargarHabitacion(db, idHabitacion) {
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_HABITACION, "readonly");
+        const store = tx.objectStore(STORE_HABITACION);
+        const req   = store.get(idHabitacion);
+
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+function cargarUsuario(db, email) {
+    return new Promise((resolve) => {
+        const tx    = db.transaction(STORE_USUARIO, "readonly");
+        const store = tx.objectStore(STORE_USUARIO);
+        const req   = store.get(email);
+
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+// =================== PINTAR TARJETA ===================
 
 function crearCardSolicitudPropietario(cont, sol, habitacion, inquilino) {
     const card = document.createElement("article");

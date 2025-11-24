@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
--->
 <html>
     <head>
         <title>NavBar</title>
@@ -11,32 +7,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
         <link rel="stylesheet" href="./Css/style.css">
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    
+
     <body>
-        
         <header class="main-header">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="navbar-content"> 
-            
-            <div class="navbar-logo-group"> 
-                <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo"> 
-                <h1 class="navbar-title">VitoBadi</h1>
-            </div>
-            
-            <nav class="hidden sm:block">
-                <div class="nav-links"> 
-                    <a href="mis_habitaciones.html">Mis Habitaciones</a>
-                    <a href="SolicitudesPropietario.html">Solicitudes</a>
-                    <a href="MisAlquileres.html">Mis Alquileres</a>
-                </div>
-            </nav>
+                <div class="navbar-content">
 
+                    <!-- LOGO + TÍTULO -->
+                    <div class="navbar-logo-group" style="flex-shrink:0; display:flex; align-items:center; gap:0.5rem;">
+                        <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo">
+                        <h1 class="navbar-title">VitoBadi</h1>
+                    </div>
 
-            <div class="user-actions"> 
-                <span>Hola pati</span>
-                <a href="perfil.html" class="user-icon">👤</a>
-                <a href="logout.html" class="logout-btn">Logout</a>
-                </div>
+                    <!-- ENLACES (se rellenan desde navbarUser.js según el rol) -->
+                    <nav>
+                        <div class="nav-links" id="navbar-links">
+                            <!-- Aquí navbarUser.js meterá los <a> según invitado / inquilino / propietario -->
+                        </div>
+                    </nav>
+
+                    <!-- ZONA USUARIO NO LOGUEADO (INVITADO) -->
+                    <div class="user-actions" id="zona-no-logueado" style="display:flex;">
+                        <a href="login.html" class="logout-btn">Login</a>
+                    </div>
+
+                    <!-- ZONA USUARIO LOGUEADO -->
+                    <div class="user-actions" id="zona-logueado" style="display:none;">
+                        <span id="navbar-usuario-nombre">Hola</span>
+                        <a href="perfil.html" class="user-icon">👤</a>
+                        <button type="button" id="btn-logout" class="logout-btn">Logout</button>
+                    </div>
+
                 </div>
             </div>
         </header>
