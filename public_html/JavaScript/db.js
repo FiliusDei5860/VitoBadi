@@ -95,8 +95,8 @@ const USUARIOS_PRUEBA = [
 const HABITACIONES_PRUEBA = [
     { idHabitacion: 1,  direccion:"C/ Gorbea 1", ciudad:"Vitoria-Gasteiz", latitud:42.846,longitud:-2.672,precio:320,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
     { idHabitacion: 2,  direccion:"C/ Gorbea 2", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.673,precio:350,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
-    { idHabitacion: 3,  direccion:"Avda. Gasteiz 10", ciudad:"Vitoria-Gasteiz", latitud:42.845,longitud:-2.670,precio:375,imagen:null,emailPropietario:"ibon.bilbao@gmail.com" },
-    { idHabitacion: 4,  direccion:"Avda. Gasteiz 12", ciudad:"Vitoria-Gasteiz", latitud:42.844,longitud:-2.671,precio:390,imagen:null,emailPropietario:"ibon.bilbao@gmail.com" },
+    { idHabitacion: 3,  direccion:"Avda. Gasteiz 10", ciudad:"Vitoria-Gasteiz", latitud:42.845,longitud:-2.670,precio:375,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
+    { idHabitacion: 4,  direccion:"Avda. Gasteiz 12", ciudad:"Vitoria-Gasteiz", latitud:42.844,longitud:-2.671,precio:390,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
     { idHabitacion: 5,  direccion:"C/ San Prudencio 5", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.671,precio:310,imagen:null,emailPropietario:"maite.lopez@gmail.com" },
     { idHabitacion: 6,  direccion:"C/ San Prudencio 8", ciudad:"Vitoria-Gasteiz", latitud:42.848,longitud:-2.672,precio:340,imagen:null,emailPropietario:"maite.lopez@gmail.com" },
     { idHabitacion: 7,  direccion:"C/ Los Herrán 20", ciudad:"Vitoria-Gasteiz", latitud:42.843,longitud:-2.668,precio:330,imagen:null,emailPropietario:"javier.garcia@gmail.com" },
@@ -105,7 +105,7 @@ const HABITACIONES_PRUEBA = [
     { idHabitacion:10,  direccion:"C/ Francia 7", ciudad:"Vitoria-Gasteiz", latitud:42.847,longitud:-2.675,precio:345,imagen:null,emailPropietario:"nerea.uribe@gmail.com" },
     { idHabitacion:11,  direccion:"Gran Vía 25", ciudad:"Bilbao", latitud:43.262,longitud:-2.935,precio:420,imagen:null,emailPropietario:"mikel.sarasola@gmail.com" },
     { idHabitacion:12,  direccion:"C/ Autonomía 14", ciudad:"Bilbao", latitud:43.261,longitud:-2.937,precio:390,imagen:null,emailPropietario:"mikel.sarasola@gmail.com" },
-    { idHabitacion:13,  direccion:"C/ Miraconcha 5", ciudad:"Donostia-San Sebastián", latitud:43.314,longitud:-1.991,precio:480,imagen:null,emailPropietario:"leire.mendizabal@gmail.com" },
+    { idHabitacion:13,  direccion:"C/ Miraconcha 5", ciudad:"Donostia-San Sebastián", latitud:43.314,longitud:-1.991,precio:480,imagen:null,emailPropietario:"ane.arrieta@gmail.com" },
     { idHabitacion:14,  direccion:"C/ Gros 10", ciudad:"Donostia-San Sebastián", latitud:43.323,longitud:-1.981,precio:430,imagen:null,emailPropietario:"andoni.saenz@gmail.com" }
 ];
 

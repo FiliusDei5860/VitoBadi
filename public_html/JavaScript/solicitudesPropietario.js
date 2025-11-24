@@ -1,132 +1,137 @@
 // JavaScript/solicitudesPropietario.js
-// Solicitudes recibidas POR el propietario actual (IndexedDB)
+// Solicitudes recibidas para habitaciones del propietario (IndexedDB)
 
-document.addEventListener("DOMContentLoaded", () => {
-    const cont = document.querySelector("main .space-y-4");
-    if (!cont) return;
+document.addEventListener("DOMContentLoaded", async () => {
+  const cont = document.getElementById("lista-solicitudes-prop");
+  const msg  = document.getElementById("msg-no-solicitudes");
+  if (!cont) return;
 
-    let usuarioActual = null;
-    try {
-        const stored = sessionStorage.getItem("usuarioActual");
-        if (stored) usuarioActual = JSON.parse(stored);
-    } catch (e) {
-        console.warn("No se ha podido leer usuarioActual:", e);
+  // usuario logeado
+  let usuarioActual = null;
+  try {
+    const raw = sessionStorage.getItem("usuarioActual");
+    usuarioActual = raw ? JSON.parse(raw) : null;
+  } catch (e) {}
+  if (!usuarioActual?.email) {
+    cont.innerHTML = "<p>Debes iniciar sesión.</p>";
+    return;
+  }
+
+  try {
+    const db = await abrirBD();
+
+    const [solicitudes, habitaciones, usuarios] = await Promise.all([
+      getAllFromStore(db, STORE_SOLICITUD),
+      getAllFromStore(db, STORE_HABITACION),
+      getAllFromStore(db, STORE_USUARIO),
+    ]);
+
+    const mapaHab = new Map(habitaciones.map(h => [h.idHabitacion, h]));
+    const mapaUsr = new Map(usuarios.map(u => [u.email, u]));
+
+    // solicitudes cuyas habitaciones son mías
+    const mias = solicitudes.filter(s => {
+      const hab = mapaHab.get(s.idHabitacion);
+      return hab && hab.emailPropietario === usuarioActual.email; // <- ESTE es tu campo real :contentReference[oaicite:3]{index=3}
+    });
+
+    cont.innerHTML = "";
+    if (mias.length === 0) {
+      msg?.classList.remove("hidden");
+      return;
     }
+    msg?.classList.add("hidden");
 
-    if (!usuarioActual || !usuarioActual.email) {
-        cont.innerHTML = "<p>Debes iniciar sesión para ver tus solicitudes.</p>";
-        return;
-    }
+    // opcional: ordenar por fecha si existe
+    mias.sort((a,b) => {
+      const fa = a.fechaSolicitud || a.fecha || "";
+      const fb = b.fechaSolicitud || b.fecha || "";
+      return fb.localeCompare(fa);
+    });
 
-    abrirBD()
-        .then(async (db) => {
-            const solicitudes = await cargarTodasSolicitudes(db);
-            if (!solicitudes || solicitudes.length === 0) {
-                cont.innerHTML = "<p>No tienes solicitudes pendientes.</p>";
-                return;
-            }
+    mias.forEach(sol => {
+      const hab = mapaHab.get(sol.idHabitacion);
+      const inq = mapaUsr.get(sol.emailInquilinoPosible);
 
-            cont.innerHTML = "";
+      const card = document.createElement("article");
+      card.className = "solicitud-card";
 
-            for (const sol of solicitudes) {
-                const hab  = await cargarHabitacion(db, sol.idHabitacion);
-                if (!hab || hab.emailPropietario !== usuarioActual.email) {
-                    continue;
-                }
-                const inquilino = await cargarUsuario(db, sol.emailInquilinoPosible);
-                crearCardSolicitudPropietario(cont, sol, hab, inquilino);
-            }
+      const left = document.createElement("div");
+      left.className = "solicitud-info-group";
 
-            if (!cont.hasChildNodes()) {
-                cont.innerHTML = "<p>No tienes solicitudes pendientes.</p>";
-            }
-        })
-        .catch(err => {
-            console.error("Error abriendo BD en solicitudesPropietario:", err);
-            cont.innerHTML = "<p>Error al cargar las solicitudes.</p>";
-        });
+      const img = document.createElement("div");
+      img.className = "solicitud-imagen-placeholder";
+      const imgSrc =
+        (Array.isArray(hab?.imagenes) && hab.imagenes[0]) ||
+        hab?.imagen ||
+        null;
+      if (imgSrc) {
+        img.style.backgroundImage = `url('${imgSrc}')`;
+        img.style.backgroundSize = "cover";
+        img.style.backgroundPosition = "center";
+      }
+
+      const text = document.createElement("div");
+      const tituloHab = hab?.titulo || hab?.direccion || `Hab ${sol.idHabitacion}`;
+      const ciudadTxt = hab?.ciudad || "-";
+      const precioTxt = hab?.precio != null ? `${hab.precio} €/mes` : "-";
+      const nombreInq = inq?.nombre || sol.emailInquilinoPosible;
+
+      const fechaTxt =
+        sol.fechaSolicitud || sol.fecha || sol.createdAt || "";
+
+      text.innerHTML = `
+        <h4 class="solicitud-titulo">${tituloHab}</h4>
+        <p class="solicitud-secundario">${hab?.direccion || ""} – ${ciudadTxt}</p>
+        <p class="font-bold text-indigo-600">${precioTxt}</p>
+        <p class="text-xs mt-1"><strong>Inquilino:</strong> ${nombreInq}</p>
+        ${fechaTxt ? `<p class="text-xs text-gray-500">Recibida: ${fechaTxt}</p>` : ""}
+      `;
+
+      left.appendChild(img);
+      left.appendChild(text);
+
+      const right = document.createElement("div");
+      right.className = "flex flex-col gap-2 min-w-[150px]";
+
+      const estado = sol.estado || "Pendiente";
+      const badge = document.createElement("span");
+      const base = "px-3 py-1 rounded-full text-xs font-semibold text-center ";
+      badge.className =
+        estado === "Aceptada"  ? base + "bg-green-100 text-green-700" :
+        estado === "Rechazada" ? base + "bg-red-100 text-red-700" :
+                                 base + "bg-yellow-100 text-yellow-700";
+      badge.textContent = `Estado: ${estado}`;
+
+      const btnVer = document.createElement("button");
+      btnVer.className = "btn btn-secondary";
+      btnVer.textContent = "Ver detalle";
+      btnVer.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `DetalleSolicitudPropietario.html?id=${sol.idSolicitud}`;
+      });
+
+      right.appendChild(badge);
+      right.appendChild(btnVer);
+
+      card.appendChild(left);
+      card.appendChild(right);
+
+      cont.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    cont.innerHTML = "<p>Error cargando solicitudes.</p>";
+  }
 });
 
-function cargarTodasSolicitudes(db) {
-    return new Promise((resolve) => {
-        const tx    = db.transaction(STORE_SOLICITUD, "readonly");
-        const store = tx.objectStore(STORE_SOLICITUD);
-        const req   = store.getAll();
-
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror   = () => resolve([]);
-    });
-}
-
-function crearCardSolicitudPropietario(cont, sol, habitacion, inquilino) {
-    const card = document.createElement("article");
-    card.className = "solicitud-card";
-
-    const infoGroup = document.createElement("div");
-    infoGroup.className = "solicitud-info-group";
-
-    const imgDiv = document.createElement("div");
-    imgDiv.className = "solicitud-imagen-placeholder";
-
-    let src = null;
-    if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
-        src = habitacion.imagenes[0];
-    } else if (habitacion.imagen) {
-        src = habitacion.imagen;
-    }
-    if (src) {
-        imgDiv.style.backgroundImage = `url('${src}')`;
-        imgDiv.style.backgroundSize = "cover";
-        imgDiv.style.backgroundPosition = "center";
-    }
-
-    const textWrap = document.createElement("div");
-
-    const titulo = document.createElement("h3");
-    titulo.className = "solicitud-titulo";
-    const nombreInq = inquilino?.nombre || sol.emailInquilinoPosible || "Inquilino desconocido";
-    titulo.textContent = `Solicitud de ${nombreInq}`;
-
-    const secundario = document.createElement("p");
-    secundario.className = "solicitud-secundario";
-
-    const nombreHab = habitacion.titulo || habitacion.direccion || "Habitación";
-    const precio    = habitacion.precio != null ? habitacion.precio + " €" : "-";
-
-    secundario.textContent =
-        `Interesado en "${nombreHab}" | Precio: ${precio}`;
-
-    const fechaTxt = document.createElement("p");
-    fechaTxt.className = "text-xs text-gray-500 mt-1";
-    fechaTxt.textContent =
-        sol.fechaSolicitud ? `Recibida el ${sol.fechaSolicitud}` : "Fecha no especificada";
-
-    textWrap.appendChild(titulo);
-    textWrap.appendChild(secundario);
-    textWrap.appendChild(fechaTxt);
-
-    infoGroup.appendChild(imgDiv);
-    infoGroup.appendChild(textWrap);
-
-    const actions = document.createElement("div");
-    actions.className = "solicitud-actions";
-
-    const linkDetalle = document.createElement("a");
-    linkDetalle.href = `DetalleSolicitudPropietario.html?id=${sol.idSolicitud}`;
-    linkDetalle.className = "btn-icon";
-    linkDetalle.innerHTML = `
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-        <span class="sr-only">Ver Detalles</span>
-    `;
-
-    actions.appendChild(linkDetalle);
-
-    card.appendChild(infoGroup);
-    card.appendChild(actions);
-
-    cont.appendChild(card);
+function getAllFromStore(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const st = tx.objectStore(storeName);
+    const req = st.getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror   = () => reject(req.error);
+  });
 }

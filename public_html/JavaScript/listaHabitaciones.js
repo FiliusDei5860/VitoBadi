@@ -1,14 +1,34 @@
 // JavaScript/listaHabitaciones.js
-// Lista de habitaciones reales (IndexedDB) + panel detalle + filtros ciudad/fecha
+// Lista de habitaciones + panel detalle en la misma vista
 
-document.addEventListener("DOMContentLoaded", () => {
+// -------------------------------
+// LOGIN REAL
+// -------------------------------
+function estaLogeadoUsuario() {
+    try {
+        const raw = sessionStorage.getItem("usuarioActual");
+        const u = raw ? JSON.parse(raw) : null;
+        return !!u?.email;
+    } catch (e) {
+        return false;
+    }
+}
+
+let ESTA_LOGEADO = false;
+
+// Habitaciones de ejemplo (solo si BD falla)
+const HABITACIONES_MOCK = [];
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    ESTA_LOGEADO = estaLogeadoUsuario();
 
     const listaHabitaciones = document.getElementById("lista-habitaciones");
     const selectCiudad      = document.getElementById("filtro-ciudad");
     const inputFecha        = document.getElementById("filtro-fecha");
     const btnBuscar         = document.getElementById("btn-buscar");
 
-    // Panel detalle
+    // Elementos del panel detalle
     const detImg       = document.getElementById("det-imagen");
     const detDir       = document.getElementById("det-direccion");
     const detCiudad    = document.getElementById("det-ciudad");
@@ -19,112 +39,95 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!listaHabitaciones) return;
 
-    let dbGlobal = null;
-    let habitacionesCache = [];
-    let usuarioActual = null;
-    let estaLogeado = false;
+    // -----------------------------
+    // Cargar Habitaciones de BD
+    // -----------------------------
+    let habitacionesBD = [];
 
-    // =========================
-    //  Leer usuario logeado
-    // =========================
     try {
-        const stored = sessionStorage.getItem("usuarioActual");
-        if (stored) {
-            usuarioActual = JSON.parse(stored);
-            estaLogeado = !!usuarioActual?.email;
-        }
+        const db = await abrirBD();
+        habitacionesBD = await getAllFromStore(db, STORE_HABITACION);
     } catch (e) {
-        console.warn("No se ha podido leer usuarioActual de sessionStorage:", e);
+        console.warn("Fallo BD, usando mock.");
+        habitacionesBD = HABITACIONES_MOCK;
     }
 
-    // =========================
-    //  Abrir BD e inicializar
-    // =========================
-    abrirBD()
-        .then(db => {
-            dbGlobal = db;
-            console.log("BD lista en ListaHabitaciones:", db.name);
+    // -----------------------------
+    // Mostrar detalle
+    // -----------------------------
+    function mostrarDetalle(habitacion) {
+        if (!habitacion) {
+            detDir.textContent    = "Selecciona una habitación en la lista.";
+            detCiudad.textContent = "-";
+            detPrecio.textContent = "-";
+            detLat.textContent    = "-";
+            detLong.textContent   = "-";
+            detImg.src            = "./Public_icons/hab1.png";
+            detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
+            btnSolicitar.textContent = "Selecciona una habitación";
+            btnSolicitar.disabled    = true;
+            btnSolicitar.onclick     = null;
+            return;
+        }
 
-            // Leer filtros de la URL (si venimos de Busqueda.html)
-            const params = new URLSearchParams(window.location.search);
-            const ciudadInicial = params.get("ciudad") || "";
-            const fechaInicial  = params.get("fecha") || "";
+        detDir.textContent    = habitacion.direccion;
+        detCiudad.textContent = habitacion.ciudad;
+        detPrecio.textContent = habitacion.precio + " €/mes";
+        detLat.textContent    = habitacion.latitud;
+        detLong.textContent   = habitacion.longitud;
 
-            if (ciudadInicial && selectCiudad) {
-                selectCiudad.value = ciudadInicial;
-            }
-            if (fechaInicial && inputFecha) {
-                inputFecha.value = fechaInicial;
-            }
+        if (habitacion.imagenes && habitacion.imagenes.length > 0) {
+            detImg.src = habitacion.imagenes[0];
+        } else {
+            detImg.src = "./Public_icons/hab1.png";
+        }
 
-            // Cargar TODAS las habitaciones desde BD y guardar en cache
-            cargarHabitacionesDesdeBD().then(() => {
-                aplicarFiltrosYRedibujar();
-            });
-        })
-        .catch(err => {
-            console.error("Error abriendo BD en ListaHabitaciones:", err);
-        });
+        detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
 
-    // =========================
-    //  Leer habitaciones desde IndexedDB
-    // =========================
-    function cargarHabitacionesDesdeBD() {
-        return new Promise((resolve, reject) => {
-            const tx    = dbGlobal.transaction(STORE_HABITACION, "readonly");
-            const store = tx.objectStore(STORE_HABITACION);
-            const req   = store.getAll();
+        btnSolicitar.disabled = false;
 
-            req.onsuccess = () => {
-                habitacionesCache = req.result || [];
-                resolve();
+        if (ESTA_LOGEADO) {
+            btnSolicitar.textContent = "Solicitar";
+            btnSolicitar.onclick = () => {
+                alert("Solicitud enviada (simulada). Luego irá a BD.");
             };
-
-            req.onerror = (e) => {
-                console.error("Error leyendo habitaciones:", e.target.error);
-                habitacionesCache = [];
-                resolve(); // no rompas la página, solo no hay datos
+        } else {
+            btnSolicitar.textContent = "Login para solicitar";
+            btnSolicitar.onclick = () => {
+                window.location.href = "login.html";
             };
-        });
+        }
     }
 
-    // =========================
-    //  Aplicar filtros
-    // =========================
-    function aplicarFiltrosYRedibujar() {
-        const ciudad = selectCiudad ? selectCiudad.value : "";
-        const fecha  = inputFecha   ? inputFecha.value   : "";
+    // -----------------------------
+    // Filtros
+    // -----------------------------
+    function filtrarHabitaciones() {
+        const ciudad = selectCiudad.value;
+        const fecha  = inputFecha.value;
 
-        let resultado = habitacionesCache.slice();
+        let resultado = habitacionesBD.slice();
 
         if (ciudad) {
             resultado = resultado.filter(h => h.ciudad === ciudad);
         }
 
         if (fecha) {
-            // disponibleDesde puede ser "", null o "YYYY-MM-DD"
-            resultado = resultado.filter(h => {
-                if (!h.disponibleDesde || h.disponibleDesde === "") {
-                    // Si no se ha establecido fecha de disponibilidad,
-                    // la consideramos disponible siempre
-                    return true;
-                }
-                return h.disponibleDesde <= fecha;
-            });
+            resultado = resultado.filter(h => !h.disponibleDesde || h.disponibleDesde <= fecha);
         }
 
         pintarHabitaciones(resultado);
     }
 
-    // =========================
-    //  Pintar lista de tarjetas
-    // =========================
+    // -----------------------------
+    // Pintar tarjetas
+    // -----------------------------
     function pintarHabitaciones(habitaciones) {
         listaHabitaciones.innerHTML = "";
 
         if (!habitaciones || habitaciones.length === 0) {
             const p = document.createElement("p");
-            p.textContent = "No se han encontrado habitaciones con esos criterios.";
+            p.textContent = "No se han encontrado habitaciones.";
             listaHabitaciones.appendChild(p);
             mostrarDetalle(null);
             return;
@@ -137,49 +140,35 @@ document.addEventListener("DOMContentLoaded", () => {
             const infoGroup = document.createElement("div");
             infoGroup.className = "solicitud-info-group";
 
-            // Imagen / placeholder
             const imgPlaceholder = document.createElement("div");
             imgPlaceholder.className = "solicitud-imagen-placeholder";
 
-            let src = null;
-            if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
-                src = habitacion.imagenes[0];
-            } else if (habitacion.imagen) {
-                src = habitacion.imagen;
+            let imgSrc = null;
+            if (habitacion.imagenes && habitacion.imagenes.length > 0) {
+                imgSrc = habitacion.imagenes[0];
             }
 
-            if (src) {
-                imgPlaceholder.style.backgroundImage = `url('${src}')`;
+            if (imgSrc) {
+                imgPlaceholder.style.backgroundImage = `url('${imgSrc}')`;
                 imgPlaceholder.style.backgroundSize = "cover";
                 imgPlaceholder.style.backgroundPosition = "center";
+
+                // <<< AQUÍ ESTÁ EL BLUR >>>
+                if (!ESTA_LOGEADO) {
+                    imgPlaceholder.classList.add("room-card-image-blurred");
+                }
             }
 
-            // Si NO está logeado, difuminamos la imagen
-            if (!estaLogeado) {
-                imgPlaceholder.classList.add("room-card-image-blurred");
-            }
-
-            // Texto principal
             const textWrapper = document.createElement("div");
 
             const titulo = document.createElement("h3");
             titulo.className = "solicitud-titulo";
-            titulo.textContent = habitacion.titulo || habitacion.direccion || "Habitación";
+            titulo.textContent = habitacion.titulo || habitacion.direccion;
 
             const secundario = document.createElement("p");
             secundario.className = "solicitud-secundario";
-
-            const ciudadTxt = habitacion.ciudad || "-";
-            const precioTxt = (habitacion.precio != null)
-                ? habitacion.precio + " €/mes"
-                : "-";
-
-            let fechaTxt = "";
-            if (habitacion.disponibleDesde) {
-                fechaTxt = " · Disponible desde " + habitacion.disponibleDesde;
-            }
-
-            secundario.textContent = `${ciudadTxt} · ${precioTxt}${fechaTxt}`;
+            secundario.textContent =
+                `${habitacion.ciudad} · ${habitacion.precio} €/mes`;
 
             textWrapper.appendChild(titulo);
             textWrapper.appendChild(secundario);
@@ -189,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             card.appendChild(infoGroup);
 
-            // Al hacer click → mostrar detalle en panel derecho
             card.addEventListener("click", () => {
                 mostrarDetalle(habitacion);
             });
@@ -197,124 +185,24 @@ document.addEventListener("DOMContentLoaded", () => {
             listaHabitaciones.appendChild(card);
         });
 
-        // Seleccionar la primera por defecto
         mostrarDetalle(habitaciones[0]);
     }
 
-    // =========================
-    //  Mostrar detalle en el panel derecho
-    // =========================
-    function mostrarDetalle(habitacion) {
-        if (!detDir || !detCiudad || !detPrecio || !detLat || !detLong || !detImg || !btnSolicitar) return;
+    // Eventos
+    btnBuscar.addEventListener("click", filtrarHabitaciones);
 
-        if (!habitacion) {
-            detDir.textContent    = "Selecciona una habitación en la lista.";
-            detCiudad.textContent = "-";
-            detPrecio.textContent = "-";
-            detLat.textContent    = "-";
-            detLong.textContent   = "-";
-            detImg.src            = "./Public_icons/hab1.png";
-            detImg.classList.toggle("room-card-image-blurred", !estaLogeado);
-
-            btnSolicitar.textContent = "Selecciona una habitación";
-            btnSolicitar.disabled    = true;
-            btnSolicitar.onclick     = null;
-            return;
-        }
-
-        detDir.textContent    = habitacion.direccion || "";
-        detCiudad.textContent = habitacion.ciudad || "-";
-        detPrecio.textContent = (habitacion.precio != null)
-            ? habitacion.precio + " €/mes"
-            : "-";
-        detLat.textContent    = habitacion.latitud  ?? "-";
-        detLong.textContent   = habitacion.longitud ?? "-";
-
-        let src = null;
-        if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
-            src = habitacion.imagenes[0];
-        } else if (habitacion.imagen) {
-            src = habitacion.imagen;
-        }
-
-        if (src) {
-            detImg.src = src;
-        } else {
-            detImg.src = "./Public_icons/hab1.png";
-        }
-
-        detImg.classList.toggle("room-card-image-blurred", !estaLogeado);
-
-        // Configurar botón Solicitar según login
-        btnSolicitar.disabled = false;
-
-        if (!estaLogeado) {
-            btnSolicitar.textContent = "Login para solicitar";
-            btnSolicitar.onclick = () => {
-                window.location.href = "login.html";
-            };
-        } else {
-            btnSolicitar.textContent = "Solicitar";
-            btnSolicitar.onclick = () => {
-                crearSolicitudParaHabitacion(habitacion);
-            };
-        }
-    }
-
-    // =========================
-    //  Crear solicitud en BD (opcional pero útil)
-    // =========================
-    function crearSolicitudParaHabitacion(habitacion) {
-        if (!dbGlobal || !usuarioActual) {
-            alert("Debes iniciar sesión para solicitar una habitación.");
-            return;
-        }
-
-        const txSol   = dbGlobal.transaction(STORE_SOLICITUD, "readwrite");
-        const store   = txSol.objectStore(STORE_SOLICITUD);
-        const getAll  = store.getAll();
-
-        getAll.onsuccess = () => {
-            const todas = getAll.result || [];
-            let nuevoId = 1;
-            if (todas.length > 0) {
-                nuevoId = Math.max(...todas.map(s => s.idSolicitud || 0)) + 1;
-            }
-
-            const hoy = new Date().toISOString().slice(0, 10);
-
-            const nuevaSolicitud = {
-                idSolicitud: nuevoId,
-                idHabitacion: habitacion.idHabitacion,
-                emailInquilinoPosible: usuarioActual.email,
-                mensaje: "",
-                fechas: "",
-                fechaSolicitud: hoy,
-                estado: "Pendiente"
-            };
-
-            const addReq = store.add(nuevaSolicitud);
-
-            addReq.onsuccess = () => {
-                alert("Solicitud registrada correctamente.");
-            };
-
-            addReq.onerror = (e) => {
-                console.error("Error guardando solicitud:", e.target.error);
-                alert("Error al registrar la solicitud.");
-            };
-        };
-
-        getAll.onerror = (e) => {
-            console.error("Error leyendo solicitudes para calcular nuevo id:", e.target.error);
-            alert("No se ha podido registrar la solicitud.");
-        };
-    }
-
-    // =========================
-    //  Evento botón Buscar
-    // =========================
-    if (btnBuscar) {
-        btnBuscar.addEventListener("click", aplicarFiltrosYRedibujar);
-    }
+    // Mostrar todo al entrar
+    pintarHabitaciones(habitacionesBD);
 });
+
+
+// Aux BD
+function getAllFromStore(db, storeName) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const st = tx.objectStore(storeName);
+        const req = st.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror   = () => reject(req.error);
+    });
+}

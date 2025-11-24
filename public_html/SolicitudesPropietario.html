@@ -1,76 +1,38 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
--->
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VitoBadi - Solicitudes de Alquiler</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="Css/style.css">
-    </head>
-    <body>
-        
-        <!--ésta sección de abajo es para insertar la navbar -->
-        <div id="navbar-placeholder"></div>
-            <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
-            </main>
-        <script src="./JavaScript/load_components.js"></script>
-        <!--ésta sección de arriba es para insertar la navbar -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitudes de Alquiler – Propietario</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
+    <!-- FAVICON / NAVICON -->
+    <link rel="icon" type="image/jpeg" href="./Public_icons/VitoBadiIcon.jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Css/style.css">
+</head>
+
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <div id="navbar-placeholder"></div>
+
+    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl flex-grow">
         <h2 class="main-title">Solicitudes Pendientes</h2>
         <p class="subtitle-center mb-10">Aquí puedes revisar las solicitudes de tus propiedades.</p>
-        
-        <div class="space-y-4">
-            
-            <div class="solicitud-card">
-                <div class="solicitud-info-group">
-                    <div class="solicitud-imagen-placeholder">
-                        </div>
-                    <div>
-                        <h3 class="solicitud-titulo">Solicitud de Juan Pérez</h3>
-                        <p class="solicitud-secundario">Interesado en "Habitación Casco Viejo" | Precio: 380€</p>
-                        <p class="text-xs text-gray-500 mt-1">Recibida hace 2 horas.</p>
-                    </div>
-                </div>
-                
-                <div class="solicitud-actions">
-                    <a href="DetalleSolicitudPropietario.html?id=1" class="btn-icon">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <span class="sr-only">Ver Detalles</span>
-                    </a>
-                </div>
-            </div>
 
-            <div class="solicitud-card">
-                <div class="solicitud-info-group">
-                    <div class="solicitud-imagen-placeholder">
-                    </div>
-                    <div>
-                        <h3 class="solicitud-titulo">Solicitud de María García</h3>
-                        <p class="solicitud-secundario">Interesada en "Estudio Zona Universitaria" | Precio: 550€</p>
-                        <p class="text-xs text-gray-500 mt-1">Recibida ayer.</p>
-                    </div>
-                </div>
-                <div class="solicitud-actions">
-                    <a href="DetalleSolicitudPropietario.html?id=2" class="btn-icon">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <span class="sr-only">Ver Detalles</span>
-                    </a>
-                </div>
-            </div>
-            
-            </div>
-    </main>
+        <!-- aquí pinta JS -->
+        <section id="lista-solicitudes-prop" class="space-y-4"></section>
 
-    <!--ésta sección de abajo es para insertar el footer -->
+        <p id="msg-no-solicitudes" class="text-center text-gray-500 mt-4 hidden">
+          No tienes solicitudes para tus habitaciones.
+        </p>
+      </main>
+
     <div id="footer-placeholder"></div>
-    <main class="container mx-auto my-8 px-4 sm:px-6 lg:px-8 max-w-4xl">
-        </main>
+
     <script src="JavaScript/db.js"></script>
     <script src="JavaScript/solicitudesPropietario.js"></script>
+    <script src="JavaScript/load_components.js"></script>
 </body>
 </html>

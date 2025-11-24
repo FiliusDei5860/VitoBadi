@@ -693,3 +693,46 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this t
     border-radius: 0.25rem;
     flex-shrink: 0;
 }
+
+/* ===================== CORRECCIÓN DE LEGIBILIDAD EN DESPLEGABLES ===================== */
+
+
+/* El contenedor del desplegable */
+nav ul li.relative.group > div.absolute {
+  background: #ffffff !important;
+  opacity: 1 !important;
+  color: #1f2937 !important;      /* texto oscuro */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Los enlaces dentro del desplegable */
+nav ul li.relative.group > div.absolute a {
+  color: #111827 !important;      /* casi negro */
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+/* Hover claro y visible */
+nav ul li.relative.group > div.absolute a:hover {
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+}
+
+.nav-dropdown{
+  background:#fff !important;
+  opacity:1 !important;
+  color:#111827 !important;
+}
+
+.nav-dropdown a{
+  color:#111827 !important;
+  opacity:1 !important;
+  font-weight:500 !important;
+}
+
+.nav-dropdown a:hover{
+  background:#eef2ff !important;
+  color:#4f46e5 !important;
+}

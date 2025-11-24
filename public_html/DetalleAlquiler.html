@@ -5,41 +5,19 @@
     <title>Detalle del alquiler – VitoBadi</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- FAVICON / NAVICON -->
+    <link rel="icon" type="image/jpeg" href="./Public_icons/VitoBadiIcon.jpg">
+
     <link rel="stylesheet" href="Css/style.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="flex flex-col min-h-screen">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- HEADER COMPLETO -->
-    <header class="main-header">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="navbar-content"> 
-
-                <div class="navbar-logo-group"> 
-                    <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo VitoBadi" class="navbar-logo"> 
-                    <h1 class="navbar-title">VitoBadi</h1>
-                </div>
-
-                <nav class="hidden sm:block">
-                    <div class="nav-links"> 
-                        <a href="mis_habitaciones.html">Mis Habitaciones</a>
-                        <a href="solicitudes.html">Solicitudes</a>
-                        <a href="MisAlquileres.html">Mis Alquileres</a>
-                    </div>
-                </nav>
-
-                <div class="user-actions"> 
-                    <span>Hola pati</span>
-                    <a href="perfil.html" class="user-icon">👤</a>
-                    <a href="logout.html" class="logout-btn">Logout</a>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- NAVBAR por componente -->
+    <div id="navbar-placeholder"></div>
 
     <!-- ================== CONTENIDO DETALLE ALQUILER ================== -->
-    <!-- Reutilizamos los estilos de room-detail-main / room-detail-card -->
     <main class="room-detail-main flex-grow">
         <div class="container">
 
@@ -68,42 +46,19 @@
 
                 <div class="room-detail-image-wrapper">
                     <img id="alq-imagen" class="room-detail-image"
-                         src="./Public_icons/hab1.png"
+                         src=""
                          alt="Imagen habitación asociada al alquiler">
                 </div>
             </section>
         </div>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="main-footer">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 footer-content-group">
+    <!-- FOOTER por componente -->
+    <div id="footer-placeholder"></div>
 
-            <div class="footer-section footer-legal">
-                <p>&copy; 2025 VitoBadi. Todos los derechos reservados.</p>
-            </div>
-
-            <div class="footer-section footer-links">
-                <h4 class="footer-title">Enlaces</h4>
-                <ul class="space-y-2">
-                    <li><a href="aviso_legal.html" class="footer-link">Aviso Legal</a></li>
-                    <li><a href="politica_privacidad.html" class="footer-link">Política de Privacidad</a></li>
-                    <li><a href="contacto.html" class="footer-link">Contacto</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section footer-contact">
-                <h4 class="footer-title">Síguenos</h4>
-                <div class="flex space-x-4">
-                    <a href="#" class="footer-social-icon" title="Facebook">FB</a>
-                    <a href="#" class="footer-social-icon" title="Instagram">IG</a>
-                    <a href="#" class="footer-social-icon" title="Twitter/X">TW</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+    <!-- JS -->
     <script src="JavaScript/db.js"></script>
     <script src="JavaScript/detalleAlquiler.js"></script>
+    <script src="JavaScript/load_components.js"></script>
 </body>
 </html>
