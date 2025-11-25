@@ -1,38 +1,39 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Mis hospedajes – VitoBadi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="Css/style.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Mis hospedajes – VitoBadi</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="Css/style.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
 
-<body class="flex flex-col min-h-screen bg-gray-100">
+    <body class="flex flex-col min-h-screen bg-gray-100">
 
-  <!-- tu header/nav cargado por load_components o pegado aquí -->
-  <div id="header-placeholder"></div>
+        <!-- AQUÍ SE CARGA EL NAVBAR -->
+        <div id="navbar-placeholder"></div>
 
-  <main class="rent-main flex-grow">
-    <div class="container">
-      <h1 class="main-title">Mis hospedajes</h1>
-      <p class="subtitle-center">
-        Aquí ves tus alquileres actuales y pasados como inquilino.
-      </p>
+        <main class="rent-main flex-grow">
+            <div class="container">
+                <h1 class="main-title">Mis hospedajes</h1>
+                <p class="subtitle-center">
+                    Aquí ves tus alquileres actuales y pasados como inquilino.
+                </p>
 
-      <section id="lista-hospedajes" class="rent-list"></section>
+                <section id="lista-hospedajes" class="rent-list"></section>
 
-      <p id="msg-sin-hospedajes" class="text-center text-gray-500 mt-4 hidden">
-        No tienes hospedajes registrados.
-      </p>
-    </div>
-  </main>
+                <p id="msg-sin-hospedajes" class="text-center text-gray-500 mt-4 hidden">
+                    No tienes hospedajes registrados.
+                </p>
+            </div>
+        </main>
 
-  <div id="footer-placeholder"></div>
+        <!-- FOOTER AUTOCARGADO -->
+        <div id="footer-placeholder"></div>
 
-  <script src="JavaScript/load_components.js"></script>
-  <script src="JavaScript/db.js"></script>
-  <script src="JavaScript/MisHospedajes.js"></script>
-  <script src="JavaScript/NavBar.js"></script>
-</body>
+        <!-- ORDEN CORRECTO DE SCRIPTS -->
+        <script src="JavaScript/db.js"></script>
+        <script src="JavaScript/load_components.js"></script>
+        <script src="JavaScript/MisHospedajes.js"></script>
+    </body>
 </html>

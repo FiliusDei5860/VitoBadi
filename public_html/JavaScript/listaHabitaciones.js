@@ -19,14 +19,12 @@ function estaLogeadoUsuario() {
         const raw = sessionStorage.getItem("usuarioActual");
         const u = raw ? JSON.parse(raw) : null;
         return !!u?.email;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
 
 let ESTA_LOGEADO = false;
-
-// Habitaciones de ejemplo (solo si BD falla)
 const HABITACIONES_MOCK = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -38,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputFecha = document.getElementById("filtro-fecha");
     const btnBuscar = document.getElementById("btn-buscar");
 
-    // Elementos del panel detalle
+    // Panel detalle
     const detImg = document.getElementById("det-imagen");
     const detDir = document.getElementById("det-direccion");
     const detCiudad = document.getElementById("det-ciudad");
@@ -51,26 +49,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
 
     // -----------------------------
-    // Cargar Habitaciones de BD
+    // Leer usuario actual
     // -----------------------------
-    let habitacionesBD = [];
     let usuarioActual = null;
-
     try {
         const raw = sessionStorage.getItem("usuarioActual");
         usuarioActual = raw ? JSON.parse(raw) : null;
     } catch {
     }
 
+    // -----------------------------
+    // Cargar Habitaciones de BD
+    // -----------------------------
+    let habitacionesBD = [];
+
     try {
         const db = await abrirBD();
         let todas = await getAllFromStore(db, STORE_HABITACION);
 
-        // ❌ OCULTAR habit. propias si estoy logeado (propietario o no)
+        // ✅ Ocultar propias SOLO cuando el usuario sea propietario de algo
+        // (si no, un inquilino normal vería todo)
         if (usuarioActual?.email) {
             const miEmail = usuarioActual.email;
-
-            // OJO: si vuestro campo se llama distinto, cambia SOLO esto:
             todas = todas.filter(h => h.emailPropietario !== miEmail);
         }
 
@@ -80,19 +80,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         habitacionesBD = HABITACIONES_MOCK;
     }
 
-    // ======================================================
-    // RELLENAR SELECT DE CIUDADES
-    // ======================================================
+    // -----------------------------
+    // Rellenar select ciudades
+    // -----------------------------
     if (selectCiudad) {
-        // tu HTML ya tiene la opción "Todas" con value=""
-        // aquí solo añadimos las ciudades reales
         const ciudadesUnicas = [...new Set(
                     habitacionesBD
                     .map(h => h.ciudad)
                     .filter(c => c && c.trim() !== "")
-                    )];
-
-        ciudadesUnicas.sort();
+                    )].sort();
 
         ciudadesUnicas.forEach(ciudad => {
             const opt = document.createElement("option");
@@ -102,18 +98,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // ======================================================
-    // CARGAR PARÁMETROS GUARDADOS (DESPUÉS de añadir opciones)
-    // ======================================================
+    // -----------------------------
+    // Cargar filtros guardados
+    // -----------------------------
     const savedCiudad = sessionStorage.getItem("filtroCiudad");
     const savedFecha = sessionStorage.getItem("filtroFecha");
 
-    if (selectCiudad && savedCiudad !== null) {
-        selectCiudad.value = savedCiudad; // si no existe opción, se queda en ""
-    }
-    if (inputFecha && savedFecha) {
+    if (selectCiudad && savedCiudad !== null)
+        selectCiudad.value = savedCiudad;
+    if (inputFecha && savedFecha)
         inputFecha.value = savedFecha;
-    }
 
     // -----------------------------
     // Mostrar detalle
@@ -133,11 +127,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        detDir.textContent = habitacion.direccion;
-        detCiudad.textContent = habitacion.ciudad;
-        detPrecio.textContent = habitacion.precio + " €/mes";
-        detLat.textContent = habitacion.latitud;
-        detLong.textContent = habitacion.longitud;
+        detDir.textContent = habitacion.direccion || "-";
+        detCiudad.textContent = habitacion.ciudad || "-";
+        detPrecio.textContent = (habitacion.precio != null ? habitacion.precio : "-") + " €/mes";
+        detLat.textContent = habitacion.latitud || "-";
+        detLong.textContent = habitacion.longitud || "-";
 
         let imgDet = null;
         if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
@@ -146,7 +140,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             imgDet = habitacion.imagen;
         }
         imgDet = normalizarSrc(imgDet);
-
         detImg.src = imgDet || "./Public_icons/hab1.png";
         detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
 
@@ -154,14 +147,47 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (ESTA_LOGEADO) {
             btnSolicitar.textContent = "Solicitar";
-            btnSolicitar.onclick = () => {
-                alert("Solicitud enviada (simulada). Luego irá a BD.");
+
+            btnSolicitar.onclick = async () => {
+                try {
+                    const db = await abrirBD();
+
+                    const solicitudes = await getAllFromStore(db, STORE_SOLICITUD);
+
+                    // evitar duplicados
+                    const yaExiste = solicitudes.some(s =>
+                        s.idHabitacion === habitacion.idHabitacion &&
+                                s.emailInquilinoPosible === usuarioActual.email
+                    );
+                    if (yaExiste) {
+                        alert("Ya has solicitado esta habitación.");
+                        return;
+                    }
+
+                    const nuevoId = solicitudes.length
+                            ? Math.max(...solicitudes.map(s => s.idSolicitud || 0)) + 1
+                            : 1;
+
+                    const nuevaSolicitud = {
+                        idSolicitud: nuevoId,
+                        idHabitacion: habitacion.idHabitacion,
+                        emailInquilinoPosible: usuarioActual.email
+                    };
+
+                    await addToStore(db, STORE_SOLICITUD, nuevaSolicitud);
+
+                    alert("Solicitud enviada.");
+                    // opcional: ir a mis solicitudes
+                    // window.location.href = "MisSolicitudesInquilino.html";
+                } catch (e) {
+                    console.error(e);
+                    alert("Error enviando solicitud.");
+                }
             };
+
         } else {
             btnSolicitar.textContent = "Login para solicitar";
-            btnSolicitar.onclick = () => {
-                window.location.href = "login.html";
-            };
+            btnSolicitar.onclick = () => window.location.href = "login.html";
         }
     }
 
@@ -221,21 +247,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                 imgPlaceholder.style.backgroundImage = `url('${imgSrc}')`;
                 imgPlaceholder.style.backgroundSize = "cover";
                 imgPlaceholder.style.backgroundPosition = "center";
+            }
 
-                if (!ESTA_LOGEADO) {
-                    imgPlaceholder.classList.add("room-card-image-blurred");
-                }
+            if (!ESTA_LOGEADO) {
+                imgPlaceholder.classList.add("room-card-image-blurred");
             }
 
             const textWrapper = document.createElement("div");
 
             const titulo = document.createElement("h3");
             titulo.className = "solicitud-titulo";
-            titulo.textContent = habitacion.titulo || habitacion.direccion;
+            titulo.textContent = habitacion.titulo || habitacion.direccion || "Habitación";
 
             const secundario = document.createElement("p");
             secundario.className = "solicitud-secundario";
-            secundario.textContent = `${habitacion.ciudad} · ${habitacion.precio} €/mes`;
+            secundario.textContent = `${habitacion.ciudad || "-"} · ${habitacion.precio ?? "-"} €/mes`;
 
             textWrapper.appendChild(titulo);
             textWrapper.appendChild(secundario);
@@ -244,9 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             infoGroup.appendChild(textWrapper);
             card.appendChild(infoGroup);
 
-            card.addEventListener("click", () => {
-                mostrarDetalle(habitacion);
-            });
+            card.addEventListener("click", () => mostrarDetalle(habitacion));
 
             listaHabitaciones.appendChild(card);
         });
@@ -254,10 +278,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         mostrarDetalle(habitaciones[0]);
     }
 
-    // Eventos
+    // -----------------------------
+    // Evento buscar
+    // -----------------------------
     if (btnBuscar) {
         btnBuscar.addEventListener("click", () => {
-            // Guardar preferencias
+
             if (selectCiudad)
                 sessionStorage.setItem("filtroCiudad", selectCiudad.value);
             if (inputFecha)
@@ -267,18 +293,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Mostrar al entrar (aplicando filtros guardados si existen)
+    // Inicial
     filtrarHabitaciones();
 });
 
-
+// -----------------------------
 // Aux BD
+// -----------------------------
 function getAllFromStore(db, storeName) {
     return new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, "readonly");
         const st = tx.objectStore(storeName);
         const req = st.getAll();
         req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function addToStore(db, storeName, obj) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
+        const st = tx.objectStore(storeName);
+        const req = st.add(obj);
+        req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);
     });
 }

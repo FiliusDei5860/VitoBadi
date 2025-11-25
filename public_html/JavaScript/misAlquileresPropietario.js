@@ -1,5 +1,15 @@
-// JavaScript/misAlquileres.js
-// Lista de alquileres donde el usuario actual participa (como propietario o inquilino)
+// JavaScript/misAlquileresPropietario.js
+// Alquileres de habitaciones donde el usuario actual ES PROPIETARIO
+
+function normalizarSrc(raw) {
+    if (!raw)
+        return null;
+    if (raw.startsWith("data:"))
+        return raw;
+    if (raw.startsWith("http") || raw.startsWith("./") || raw.startsWith("/"))
+        return raw;
+    return `data:image/jpeg;base64,${raw}`;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const contenedor = document.getElementById("lista-alquileres");
@@ -7,18 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
 
     let usuarioActual = null;
-
-    // Leer usuario logeado
     try {
         const stored = sessionStorage.getItem("usuarioActual");
-        if (stored) {
-            usuarioActual = JSON.parse(stored);
-        }
-    } catch (e) {
-        console.warn("No se ha podido leer usuarioActual:", e);
+        usuarioActual = stored ? JSON.parse(stored) : null;
+    } catch {
     }
 
-    if (!usuarioActual || !usuarioActual.email) {
+    if (!usuarioActual?.email) {
         contenedor.innerHTML = "<p>Debes iniciar sesión para ver tus alquileres.</p>";
         return;
     }
@@ -38,29 +43,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const hoyISO = new Date().toISOString().slice(0, 10);
 
-            // Filtrar alquileres donde el usuario es propietario o inquilino
-            const alquileresUsuario = alquileres.filter(a => {
+            // ✅ SOLO alquileres de MIS habitaciones
+            const alquileresPropietario = alquileres.filter(a => {
                 const hab = mapaHab.get(a.idHabitacion);
-                if (!hab)
-                    return false;
-                const soyInquilino = a.emailInquilino === usuarioActual.email;
-                const soyPropietario = hab.emailPropietario === usuarioActual.email;
-                return soyInquilino || soyPropietario;
+                return hab && hab.emailPropietario === usuarioActual.email;
             });
 
             contenedor.innerHTML = "";
 
-            if (alquileresUsuario.length === 0) {
-                contenedor.innerHTML = "<p>No tienes alquileres registrados.</p>";
+            if (alquileresPropietario.length === 0) {
+                contenedor.innerHTML = "<p>No tienes alquileres de tus propiedades.</p>";
                 return;
             }
 
-            alquileresUsuario.forEach(a => {
+            alquileresPropietario.forEach(a => {
                 const hab = mapaHab.get(a.idHabitacion);
                 const inq = mapaUsr.get(a.emailInquilino);
-
-                const soyInquilino = a.emailInquilino === usuarioActual.email;
-                const soyPropietario = hab && hab.emailPropietario === usuarioActual.email;
 
                 const card = document.createElement("article");
                 card.className = "solicitud-card";
@@ -79,6 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         imgSrc = hab.imagen;
                     }
                 }
+                imgSrc = normalizarSrc(imgSrc);
+
                 if (imgSrc) {
                     imgDiv.style.backgroundImage = `url('${imgSrc}')`;
                     imgDiv.style.backgroundSize = "cover";
@@ -89,9 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const titulo = document.createElement("h3");
                 titulo.className = "solicitud-titulo";
-                titulo.textContent = hab
-                        ? (hab.direccion || "Habitación")
-                        : "Habitación desconocida";
+                titulo.textContent = hab?.direccion || hab?.titulo || "Habitación";
 
                 const p1 = document.createElement("p");
                 p1.className = "solicitud-secundario";
@@ -106,20 +104,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const p2 = document.createElement("p");
                 p2.className = "solicitud-secundario";
 
-                let rolTxt = "";
-                if (soyPropietario && soyInquilino) {
-                    rolTxt = "Tú eres propietario e inquilino (caso raro).";
-                } else if (soyPropietario) {
-                    rolTxt = `Inquilino: ${inq?.nombre || a.emailInquilino}`;
-                } else if (soyInquilino) {
-                    rolTxt = `Propietario: ${hab?.emailPropietario || "-"}`;
-                }
-
                 const estadoTxt = (a.fechaFinAlquiler && a.fechaFinAlquiler < hoyISO)
                         ? "Histórico"
                         : "Activo";
 
-                p2.textContent = `${rolTxt} · Estado: ${estadoTxt}`;
+                p2.textContent = `Inquilino: ${inq?.nombre || a.emailInquilino} · Estado: ${estadoTxt}`;
 
                 textWrap.appendChild(titulo);
                 textWrap.appendChild(p1);
@@ -127,10 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 infoGroup.appendChild(imgDiv);
                 infoGroup.appendChild(textWrap);
-
                 card.appendChild(infoGroup);
 
-                // Enlace a detalle
                 card.addEventListener("click", () => {
                     window.location.href = `DetalleAlquiler.html?id=${a.idContrato}`;
                 });
@@ -139,19 +126,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         } catch (err) {
-            console.error("Error en misAlquileres:", err);
-            contenedor.innerHTML = "<p>Se ha producido un error al cargar tus alquileres.</p>";
+            console.error("Error en misAlquileresPropietario:", err);
+            contenedor.innerHTML = "<p>Error al cargar tus alquileres de propiedades.</p>";
         }
     })();
 });
 
-// Auxiliar: leer todos los registros de un store
 function getAllFromStore(db, storeName) {
     return new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, "readonly");
         const st = tx.objectStore(storeName);
         const req = st.getAll();
-
         req.onsuccess = () => resolve(req.result || []);
         req.onerror = () => reject(req.error);
     });
