@@ -1,11 +1,16 @@
 // JavaScript/listaHabitaciones.js
 // Lista de habitaciones + panel detalle en la misma vista
+
 function normalizarSrc(raw) {
-    if (!raw) return null;
-    if (raw.startsWith("data:")) return raw;
-    if (raw.startsWith("http") || raw.startsWith("./") || raw.startsWith("/")) return raw;
+    if (!raw)
+        return null;
+    if (raw.startsWith("data:"))
+        return raw;
+    if (raw.startsWith("http") || raw.startsWith("./") || raw.startsWith("/"))
+        return raw;
     return `data:image/jpeg;base64,${raw}`;
 }
+
 // -------------------------------
 // LOGIN REAL
 // -------------------------------
@@ -29,24 +34,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     ESTA_LOGEADO = estaLogeadoUsuario();
 
     const listaHabitaciones = document.getElementById("lista-habitaciones");
-    const selectCiudad      = document.getElementById("filtro-ciudad");
-    const inputFecha        = document.getElementById("filtro-fecha");
-    const btnBuscar         = document.getElementById("btn-buscar");
+    const selectCiudad = document.getElementById("filtro-ciudad");
+    const inputFecha = document.getElementById("filtro-fecha");
+    const btnBuscar = document.getElementById("btn-buscar");
 
     // Elementos del panel detalle
-    const detImg       = document.getElementById("det-imagen");
-    const detDir       = document.getElementById("det-direccion");
-    const detCiudad    = document.getElementById("det-ciudad");
-    const detPrecio    = document.getElementById("det-precio");
-    const detLat       = document.getElementById("det-latitud");
-    const detLong      = document.getElementById("det-longitud");
+    const detImg = document.getElementById("det-imagen");
+    const detDir = document.getElementById("det-direccion");
+    const detCiudad = document.getElementById("det-ciudad");
+    const detPrecio = document.getElementById("det-precio");
+    const detLat = document.getElementById("det-latitud");
+    const detLong = document.getElementById("det-longitud");
     const btnSolicitar = document.getElementById("btn-det-solicitar");
 
-    if (!listaHabitaciones) return;
+    if (!listaHabitaciones)
+        return;
 
-    // -----------------------------
-    // Cargar Habitaciones de BD
-    // -----------------------------
     // -----------------------------
     // Cargar Habitaciones de BD
     // -----------------------------
@@ -56,15 +59,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         const raw = sessionStorage.getItem("usuarioActual");
         usuarioActual = raw ? JSON.parse(raw) : null;
-    } catch {}
+    } catch {
+    }
 
     try {
         const db = await abrirBD();
         let todas = await getAllFromStore(db, STORE_HABITACION);
 
-        // ❌ OCULTAR habit. propias si eres propietario
+        // ❌ OCULTAR habit. propias si estoy logeado (propietario o no)
         if (usuarioActual?.email) {
             const miEmail = usuarioActual.email;
+
+            // OJO: si vuestro campo se llama distinto, cambia SOLO esto:
             todas = todas.filter(h => h.emailPropietario !== miEmail);
         }
 
@@ -75,16 +81,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // ======================================================
-// RELLENAR SELECT DE CIUDADES
-// ======================================================
+    // RELLENAR SELECT DE CIUDADES
+    // ======================================================
     if (selectCiudad) {
+        // tu HTML ya tiene la opción "Todas" con value=""
+        // aquí solo añadimos las ciudades reales
         const ciudadesUnicas = [...new Set(
                     habitacionesBD
                     .map(h => h.ciudad)
                     .filter(c => c && c.trim() !== "")
                     )];
 
-        ciudadesUnicas.sort(); // ordenar alfabéticamente
+        ciudadesUnicas.sort();
 
         ciudadesUnicas.forEach(ciudad => {
             const opt = document.createElement("option");
@@ -94,30 +102,42 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // ======================================================
+    // CARGAR PARÁMETROS GUARDADOS (DESPUÉS de añadir opciones)
+    // ======================================================
+    const savedCiudad = sessionStorage.getItem("filtroCiudad");
+    const savedFecha = sessionStorage.getItem("filtroFecha");
+
+    if (selectCiudad && savedCiudad !== null) {
+        selectCiudad.value = savedCiudad; // si no existe opción, se queda en ""
+    }
+    if (inputFecha && savedFecha) {
+        inputFecha.value = savedFecha;
+    }
 
     // -----------------------------
     // Mostrar detalle
     // -----------------------------
     function mostrarDetalle(habitacion) {
         if (!habitacion) {
-            detDir.textContent    = "Selecciona una habitación en la lista.";
+            detDir.textContent = "Selecciona una habitación en la lista.";
             detCiudad.textContent = "-";
             detPrecio.textContent = "-";
-            detLat.textContent    = "-";
-            detLong.textContent   = "-";
-            detImg.src            = "./Public_icons/hab1.png";
+            detLat.textContent = "-";
+            detLong.textContent = "-";
+            detImg.src = "./Public_icons/hab1.png";
             detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
             btnSolicitar.textContent = "Selecciona una habitación";
-            btnSolicitar.disabled    = true;
-            btnSolicitar.onclick     = null;
+            btnSolicitar.disabled = true;
+            btnSolicitar.onclick = null;
             return;
         }
 
-        detDir.textContent    = habitacion.direccion;
+        detDir.textContent = habitacion.direccion;
         detCiudad.textContent = habitacion.ciudad;
         detPrecio.textContent = habitacion.precio + " €/mes";
-        detLat.textContent    = habitacion.latitud;
-        detLong.textContent   = habitacion.longitud;
+        detLat.textContent = habitacion.latitud;
+        detLong.textContent = habitacion.longitud;
 
         let imgDet = null;
         if (Array.isArray(habitacion.imagenes) && habitacion.imagenes.length > 0) {
@@ -128,7 +148,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         imgDet = normalizarSrc(imgDet);
 
         detImg.src = imgDet || "./Public_icons/hab1.png";
-
         detImg.classList.toggle("room-card-image-blurred", !ESTA_LOGEADO);
 
         btnSolicitar.disabled = false;
@@ -150,8 +169,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Filtros
     // -----------------------------
     function filtrarHabitaciones() {
-        const ciudad = selectCiudad.value;
-        const fecha  = inputFecha.value;
+        const ciudad = selectCiudad ? selectCiudad.value : "";
+        const fecha = inputFecha ? inputFecha.value : "";
 
         let resultado = habitacionesBD.slice();
 
@@ -203,7 +222,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 imgPlaceholder.style.backgroundSize = "cover";
                 imgPlaceholder.style.backgroundPosition = "center";
 
-                // <<< AQUÍ ESTÁ EL BLUR >>>
                 if (!ESTA_LOGEADO) {
                     imgPlaceholder.classList.add("room-card-image-blurred");
                 }
@@ -217,15 +235,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const secundario = document.createElement("p");
             secundario.className = "solicitud-secundario";
-            secundario.textContent =
-                `${habitacion.ciudad} · ${habitacion.precio} €/mes`;
+            secundario.textContent = `${habitacion.ciudad} · ${habitacion.precio} €/mes`;
 
             textWrapper.appendChild(titulo);
             textWrapper.appendChild(secundario);
 
             infoGroup.appendChild(imgPlaceholder);
             infoGroup.appendChild(textWrapper);
-
             card.appendChild(infoGroup);
 
             card.addEventListener("click", () => {
@@ -239,16 +255,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Eventos
-    btnBuscar.addEventListener("click", () => {
-        // Guardar preferencias
-        sessionStorage.setItem("filtroCiudad", selectCiudad.value);
-        sessionStorage.setItem("filtroFecha", inputFecha.value);
+    if (btnBuscar) {
+        btnBuscar.addEventListener("click", () => {
+            // Guardar preferencias
+            if (selectCiudad)
+                sessionStorage.setItem("filtroCiudad", selectCiudad.value);
+            if (inputFecha)
+                sessionStorage.setItem("filtroFecha", inputFecha.value);
 
-        filtrarHabitaciones();
-    });
+            filtrarHabitaciones();
+        });
+    }
 
-    // Mostrar todo al entrar
-    pintarHabitaciones(habitacionesBD);
+    // Mostrar al entrar (aplicando filtros guardados si existen)
+    filtrarHabitaciones();
 });
 
 
@@ -259,6 +279,6 @@ function getAllFromStore(db, storeName) {
         const st = tx.objectStore(storeName);
         const req = st.getAll();
         req.onsuccess = () => resolve(req.result || []);
-        req.onerror   = () => reject(req.error);
+        req.onerror = () => reject(req.error);
     });
 }

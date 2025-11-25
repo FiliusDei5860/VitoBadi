@@ -28,8 +28,8 @@
         </div>
 
         <!-- HABITACIONES (solo logeado) -->
-        <div class="relative group nav-auth">
-          <a href="#" class="cursor-default">Habitaciones ▾</a>
+        <div class="relative group nav-auth" id="menu-ver">
+        <a href="#" class="cursor-default">Habitaciones ▾</a>
 
           <div class="absolute left-0 mt-2 hidden group-hover:block bg-white rounded-lg shadow-lg min-w-56 z-50">
             <a href="CreateHabitacion.html" class="block px-3 py-2 hover:bg-gray-100 rounded text-gray-700">
@@ -49,9 +49,9 @@
           <a href="#" class="cursor-default">Ver ▾</a>
 
           <div class="absolute left-0 mt-2 hidden group-hover:block bg-white rounded-lg shadow-lg min-w-56 z-50">
-            <a href="MisAlquileres.html" class="block px-3 py-2 hover:bg-gray-100 rounded text-gray-700">
-              Mis hospedajes
-            </a>
+              <a href="MisHospedajes.html" class="block px-3 py-2 hover:bg-gray-100 rounded">
+                  Mis hospedajes
+              </a>
             <a href="MisSolicitudesInquilino.html" class="block px-3 py-2 hover:bg-gray-100 rounded text-gray-700">
               Mis solicitudes
             </a>
@@ -59,13 +59,16 @@
         </div>
 
         <!-- SOLO PROPIETARIO (módulos principales extra) -->
-        <a href="SolicitudesPropietario.html" class="nav-owner">
-          Solicitudes propiedades
+        <a href="SolicitudesPropietario.html" 
+           class="nav-owner block px-3 py-2 hover:bg-gray-100 rounded text-gray-700">
+            Solicitudes de mis propiedades
         </a>
 
-        <a href="MisAlquileres.html" class="nav-owner">
-          Alquileres propiedades
+        <a href="MisAlquileresPropietario.html" class="nav-owner">
+            Alquileres propiedades
         </a>
+
+
 
       </nav>
 
