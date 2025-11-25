@@ -9,23 +9,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Abrir BD
     abrirBD()
-        .then(db => {
-            dbGlobal = db;
-            console.log("BD lista en CreateHabitacion:", db.name);
-        })
-        .catch(err => console.error("Error abriendo BD:", err));
+            .then(db => {
+                dbGlobal = db;
+                console.log("BD lista en CreateHabitacion:", db.name);
+            })
+            .catch(err => console.error("Error abriendo BD:", err));
 
-    const form           = document.getElementById("create-room-form");
-    const inputTitulo    = document.getElementById("titulo");
-    const inputDesc      = document.getElementById("descripcion");
-    const inputPrecio    = document.getElementById("precio");
-    const inputDir       = document.getElementById("direccion");
-    const inputTam       = document.getElementById("tamanio");
-    const inputImagenes  = document.getElementById("imagenes");
-    const dropZone       = document.getElementById("drop-zone");
+    const form = document.getElementById("create-room-form");
+    const inputTitulo = document.getElementById("titulo");
+    const inputDesc = document.getElementById("descripcion");
+    const inputPrecio = document.getElementById("precio");
+    const inputDir = document.getElementById("direccion");
+    const inputCiudad = document.getElementById("ciudad");
+    const inputCP = document.getElementById("cp");
+    const inputLatitud = document.getElementById("latitud");
+    const inputLongitud = document.getElementById("longitud");
+    const inputTam = document.getElementById("tamanio");
+    const inputImagenes = document.getElementById("imagenes");
+    const dropZone = document.getElementById("drop-zone");
     const previewContainer = document.getElementById("preview-container");
 
-    if (!form) return;
+    if (!form)
+        return;
 
     // Ficheros seleccionados (drag&drop o input)
     let selectedFiles = [];
@@ -35,9 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ==============================
     function obtenerSiguienteIdHabitacion(db) {
         return new Promise((resolve, reject) => {
-            const tx    = db.transaction(STORE_HABITACION, "readonly");
+            const tx = db.transaction(STORE_HABITACION, "readonly");
             const store = tx.objectStore(STORE_HABITACION);
-            const req   = store.getAll();
+            const req = store.getAll();
 
             req.onsuccess = () => {
                 const habitaciones = req.result || [];
@@ -59,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function leerArchivoComoDataURL(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload  = () => resolve(reader.result);   // DataURL (base64)
+            reader.onload = () => resolve(reader.result);   // DataURL (base64)
             reader.onerror = () => reject(reader.error);
             reader.readAsDataURL(file);
         });
@@ -75,7 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function mostrarPreviewDeFiles(files) {
-        if (!previewContainer) return;
+        if (!previewContainer)
+            return;
         limpiarPreview();
 
         files.forEach(file => {
@@ -153,14 +159,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 const obj = JSON.parse(stored);
                 emailPropietario = obj.email;
             }
-        } catch (_) {}
+        } catch (_) {
+        }
 
         // Datos del formulario
-        const titulo  = (inputTitulo?.value || "").trim();
-        const desc    = (inputDesc?.value   || "").trim();
-        const precio  = Number(inputPrecio?.value || 0);
-        const dir     = (inputDir?.value    || "").trim();
-        const tamanio = (inputTam?.value    || "").trim();
+        const titulo = (inputTitulo?.value || "").trim();
+        const desc = (inputDesc?.value || "").trim();
+        const precio = Number(inputPrecio?.value || 0);
+        const dir = (inputDir?.value || "").trim();
+        const ciudad = (inputCiudad?.value || "").trim();
+        const cp = (inputCP?.value || "").trim();
+        const latRaw = (inputLatitud?.value || "").trim();
+        const lngRaw = (inputLongitud?.value || "").trim();
+        const tamanio = (inputTam?.value || "").trim();
+
+        const latitud = latRaw ? parseFloat(latRaw) : null;
+        const longitud = lngRaw ? parseFloat(lngRaw) : null;
 
         if (!dir || !precio) {
             alert("Como mínimo debes indicar dirección y precio.");
@@ -184,21 +198,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 idHabitacion: nuevoId,
                 titulo: titulo || dir,
                 direccion: dir,
-                ciudad: "",              // se puede ampliar si queréis
+                ciudad,
+                cp,
                 precio,
                 disponibleDesde: "",
-                latitud: null,
-                longitud: null,
+                latitud,
+                longitud,
                 tamanio,
                 descripcion: desc,
-                imagen: imagenesBase64[0],   // principal
-                imagenes: imagenesBase64,    // array con todas
+                imagen: imagenesBase64[0], // principal
+                imagenes: imagenesBase64, // array con todas
                 emailPropietario
             };
 
-            const tx    = dbGlobal.transaction(STORE_HABITACION, "readwrite");
+            const tx = dbGlobal.transaction(STORE_HABITACION, "readwrite");
             const store = tx.objectStore(STORE_HABITACION);
-            const req   = store.add(nuevaHabitacion);
+            const req = store.add(nuevaHabitacion);
 
             req.onsuccess = () => {
                 alert("Habitación creada con ID: " + nuevoId);
