@@ -12,6 +12,10 @@
         <servlet-name>CrearHabitacionServlet</servlet-name>
         <servlet-class>packServlets.CrearHabitacionServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ActualizarHabitacionServlet</servlet-name>
+        <servlet-class>packServlets.ActualizarHabitacionServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ListaHabitacionesServlet</servlet-name>
         <url-pattern>/ListaHabitaciones</url-pattern>
@@ -23,6 +27,10 @@
     <servlet-mapping>
         <servlet-name>CrearHabitacionServlet</servlet-name>
         <url-pattern>/CrearHabitacionServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ActualizarHabitacionServlet</servlet-name>
+        <url-pattern>/ActualizarHabitacionServlet</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>Busqueda.jsp</welcome-file>

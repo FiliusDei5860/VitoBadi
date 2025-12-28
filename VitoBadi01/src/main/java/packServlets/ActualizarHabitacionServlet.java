@@ -3,25 +3,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 
-
 package packServlets;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-/**
- *
- * @author Resen
- */
+import utils.DB; // Asegúrate de que esta ruta sea correcta
 
-
-@WebServlet("/ActualizarHabitacionServlet")
 public class ActualizarHabitacionServlet extends HttpServlet {
 
-    // 1. CARGAR DATOS (GET)
+    // 1. CARGAR DATOS (GET) - Ya lo tienes, solo asegúrate de que el ID sea correcto
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -29,15 +25,14 @@ public class ActualizarHabitacionServlet extends HttpServlet {
         String idParam = request.getParameter("id");
         
         if (idParam != null) {
-            // Aquí llamarías a tu DAO para obtener el precio actual
-            // int precioActual = HabitacionDAO.getPrecio(idParam);
-            int precioActual = 350; // Ejemplo simulado
+            // Aquí puedes integrar tu consulta SQL para traer el precio real si quieres
+            int precioActual = 350; // Ejemplo
             
             request.setAttribute("precioActual", precioActual);
             request.setAttribute("idHabitacion", idParam);
             request.getRequestDispatcher("ActualizarHabitacion.jsp").forward(request, response);
         } else {
-            response.sendRedirect("MisHabitacionesServlet");
+            response.sendRedirect("MisHabitaciones.jsp");
         }
     }
 
@@ -49,17 +44,36 @@ public class ActualizarHabitacionServlet extends HttpServlet {
         String id = request.getParameter("idHabitacion");
         String precioStr = request.getParameter("precio");
 
-        try {
+        if (id == null || precioStr == null) {
+            response.sendRedirect("MisHabitaciones.jsp");
+            return;
+        }
+
+        try (Connection conn = DB.getConexion()) {
             int nuevoPrecio = Integer.parseInt(precioStr);
             
-            // Lógica de BD: HabitacionDAO.updatePrecio(id, nuevoPrecio);
-            System.out.println("Actualizando habitacion " + id + " a precio: " + nuevoPrecio);
+            // Query para actualizar el precio
+            String sql = "UPDATE habitacion SET precioMes = ? WHERE codHabi = ?";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, nuevoPrecio);
+            ps.setString(2, id);
+            
+            int filasActualizadas = ps.executeUpdate();
 
-            // Redirigir al listado tras éxito
-            response.sendRedirect("MisHabitacionesServlet?mensaje=actualizado");
+            if (filasActualizadas > 0) {
+                // Redirigir con éxito
+                response.sendRedirect("MisHabitaciones.jsp?mensaje=actualizado");
+            } else {
+                // Si no se encontró el ID
+                response.sendRedirect("ActualizarHabitacion.jsp?id=" + id + "&error=no_encontrado");
+            }
             
         } catch (NumberFormatException e) {
             response.sendRedirect("ActualizarHabitacion.jsp?id=" + id + "&error=precio_invalido");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendRedirect("ActualizarHabitacion.jsp?id=" + id + "&error=db_error");
         }
     }
 }

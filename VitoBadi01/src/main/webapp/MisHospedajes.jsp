@@ -34,7 +34,7 @@
                 %>
                     <div class="bg-white p-8 rounded-xl shadow text-center">
                         <p class="text-gray-500">No tienes hospedajes registrados.</p>
-                        <a href="BuscarHabitacionServlet" class="text-indigo-600 hover:underline mt-4 inline-block">
+                        <a href="Busqueda" class="text-indigo-600 hover:underline mt-4 inline-block">
                             ¡Empieza a buscar una habitación!
                         </a>
                     </div>
