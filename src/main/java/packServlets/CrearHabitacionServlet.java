@@ -15,10 +15,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 
 import jakarta.servlet.http.*;
 import utils.DB; 
-
+@WebServlet("/CrearHabitacionServlet")
 @MultipartConfig()
 public class CrearHabitacionServlet extends HttpServlet {
 
