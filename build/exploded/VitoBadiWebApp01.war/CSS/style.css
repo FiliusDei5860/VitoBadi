@@ -1,0 +1,738 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this template
+*/
+/* 
+    Created on : 16 nov 2025, 12:53:05 p.m.
+    Author     : Resen
+*/
+
+/* ESTILOS BASE Y REUTILIZABLES (APLICACIÓN VITO BADI)                       */
+
+/* ------------------ 1. TIPOGRAFÍA Y ESTRUCTURA GLOBAL ------------------- */
+
+/* Clase para centrar cualquier elemento de bloque (usada en <main>) */
+.container {
+    /* Define el ancho máximo que usamos en Tailwind (max-w-4xl) */
+    max-width: 960px; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Estilo para el título principal de las vistas (h2) */
+.main-title {
+    /* Sobrescribe Tailwind para asegurar consistencia */
+    font-size: 3.5rem !important; 
+    font-weight: 800 !important; 
+    text-align: center !important;
+    margin-bottom: 2rem !important; 
+    color: #1f2937; /* Color de texto oscuro (gray-900) */
+}
+
+/* Estilo para el subtítulo de la vista */
+.subtitle-center {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #4b5563; /* Color de texto medio (gray-600) */
+}
+
+
+/* ----------------------- 2. ESTILOS DE FORMULARIO ----------------------- */
+
+/* Estilo para el contenedor general del formulario (fondo blanco, sombra) */
+.form-container {
+    background-color: white;
+    padding: 1.5rem; /* p-6 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+    display: flex; /* Para controlar el espacio-y de Tailwind */
+    flex-direction: column;
+    gap: 1.5rem; /* space-y-6 */
+}
+
+/* Estilo para los bloques de fieldset */
+.form-section {
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+    padding: 1rem;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* space-y-4 */
+}
+
+/* Estilo de la leyenda (título del fieldset) */
+.form-section legend {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #4f46e5; /* Color primario: indigo-600 */
+    padding: 0 0.5rem;
+}
+
+/* Estilo para inputs y textareas (se puede mejorar con clases de Tailwind) */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    /* Asegura que no se apliquen estilos extraños por defecto */
+    box-sizing: border-box; 
+}
+
+
+/* ----------------------- 3. BOTONES Y ACCIONES -------------------------- */
+
+/* Contenedor de botones (para alineación a la derecha) */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    gap: 0.75rem; /* space-x-3 */
+}
+
+/* Estilo BASE para todos los botones/enlaces de acción */
+.btn {
+    padding: 0.5rem 1rem; /* py-2 px-4 */
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
+    transition: background-color 0.15s ease-in-out;
+    text-decoration: none; /* Asegura que los <a> se vean como botones */
+    text-align: center;
+}
+
+/* Estilo para el botón primario (Guardar/Actualizar) */
+.btn-primary {
+    color: white;
+    background-color: #4f46e5; /* indigo-600 */
+}
+
+.btn-primary:hover {
+    background-color: #4338ca; /* indigo-700 */
+}
+
+/* Estilo para el botón secundario (Cancelar/Volver) */
+.btn-secondary {
+    color: #374151; /* gray-700 */
+    background-color: white;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+}
+
+.btn-secondary:hover {
+    background-color: #f9fafb; /* gray-50 */
+}
+
+/* ESTILOS DE LA BARRA DE NAVEGACIÓN (HEADER/NAVBAR)                         */
+
+/* Contenedor principal de la cabecera */
+.main-header {
+    background-color: #1f2937; /* gray-800 */
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* shadow-md */
+}
+
+/* Contenedor del contenido interno de la barra (para centrar y espaciar) */
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem; /* h-16 (altura estándar de la barra) */
+}
+
+/* Estilo para el logo/título principal */
+.navbar-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* space-x-2 */
+}
+
+.navbar-logo {
+    height: 2rem; /* h-8 */
+    width: 2rem; /* w-8 */
+    border-radius: 50%; /* circular */
+    object-fit: cover; /* Asegura que la imagen no se distorsione */
+}
+
+.navbar-title {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700; /* font-bold */
+    letter-spacing: -0.025em; /* tracking-tight */
+}
+
+/* Estilos de los enlaces de navegación */
+.nav-links {
+    display: flex;
+    gap: 1rem; /* space-x-4 */
+}
+
+.nav-links a {
+    color: #d1d5db; /* gray-300 */
+    padding: 0.5rem 0.75rem; /* px-3 py-2 */
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.nav-links a:hover {
+    background-color: #374151; /* hover:bg-gray-700 */
+    color: white;
+}
+
+/* Estilos de la sección de usuario (Hola pati, Logout) */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* space-x-4 */
+}
+
+.user-actions span {
+    font-size: 0.875rem; /* text-sm */
+}
+
+.logout-btn {
+    background-color: #dc2626; /* red-600 */
+    color: white;
+    padding: 0.25rem 0.75rem; /* px-3 py-1 */
+    border-radius: 0.25rem; /* rounded */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.logout-btn:hover {
+    background-color: #b91c1c; /* hover:bg-red-700 */
+}
+
+/* Estilo para el icono de usuario (👤) */
+.user-icon {
+    padding: 0.5rem; /* p-2 */
+    color: #d1d5db; /* gray-300 */
+    border-radius: 50%;
+    text-decoration: none;
+    transition: color 0.15s ease-in-out;
+}
+
+.user-icon:hover {
+    color: white;
+}
+
+/* ESTILOS DE TARJETA DE SOLICITUD (REUTILIZABLE)                           */
+
+.solicitud-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
+    border: 1px solid #e5e7eb; /* gray-200 */
+    transition: transform 0.2s;
+}
+
+.solicitud-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.solicitud-info-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* space-x-4 */
+}
+
+/* Placeholder para la imagen de la habitación */
+.solicitud-imagen-placeholder {
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    background-color: #d1d5db; /* gray-300 */
+    border-radius: 0.25rem;
+    flex-shrink: 0; /* Asegura que no se haga más pequeño */
+    /* Aquí se puede añadir un icono SVG en el centro */
+}
+
+.solicitud-titulo {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #1f2937;
+}
+
+.solicitud-secundario {
+    font-size: 0.875rem; /* text-sm */
+    color: #4b5563;
+}
+
+/* Botones Icono (como la lupa) */
+.btn-icon {
+    color: #4b5563; /* gray-600 */
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-icon:hover {
+    color: #4f46e5; /* indigo-600 */
+    background-color: #eef2ff; /* indigo-50 */
+}
+
+
+/* ESTILOS DEL PIE DE PÁGINA (FOOTER)                                        */
+
+.main-footer {
+    background-color: #1f2937; /* gray-800 */
+    color: #d1d5db; /* gray-300 */
+    padding: 2rem 0;
+    margin-top: auto; /* Empuja el footer hacia abajo si el body es flex */
+}
+
+/* Contenedor interno para organizar las columnas (Grid en dispositivos grandes) */
+.footer-content-group {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 columna por defecto */
+}
+
+@media (min-width: 768px) { /* md: o más grande */
+    .footer-content-group {
+        grid-template-columns: 2fr 1fr 1fr; /* 3 columnas: Legal | Enlaces | Contacto */
+    }
+}
+
+.footer-section {
+    /* Estilos generales de la sección si son necesarios */
+}
+
+.footer-legal {
+    font-size: 0.875rem; /* text-sm */
+}
+
+.footer-title {
+    font-size: 1rem;
+    font-weight: 600; /* font-semibold */
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.footer-link {
+    color: #9ca3af; /* gray-400 */
+    text-decoration: none;
+    transition: color 0.2s;
+    font-size: 0.875rem;
+}
+
+.footer-link:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.footer-social-icon {
+    font-weight: 700;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #4b5563; /* gray-600 */
+    transition: background-color 0.2s;
+    text-decoration: none;
+}
+
+.footer-social-icon:hover {
+    background-color: #374151; /* gray-700 */
+}
+
+<<<<<<< HEAD
+/* ===================== ESTILOS ESPECÍFICOS PARA LOGIN ===================== */
+
+/* Fondo y centrado vertical de la página de login */
+.login-main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 1rem;
+    background-color: #f3f4f6; /* gris claro, similar a Tailwind gray-100 */
+}
+
+/* Limitar un poco el ancho del formulario dentro del container */
+.login-main .form-container {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Inputs de email y password con el mismo estilo que los text/number */
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+    box-sizing: border-box;
+}
+
+/* Mensajes de error debajo de los campos */
+.error {
+    color: #dc2626; /* red-600 */
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.25rem;
+}
+
+/* Mensaje de error general del login */
+.error-general {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: #fef2f2; /* red-50 */
+    border: 1px solid #fecaca; /* red-200 */
+    color: #b91c1c; /* red-700 */
+    font-size: 0.875rem;
+}
+/* ================= VISTA AMPLIADA DE HABITACIÓN ================= */
+
+.room-detail-main {
+    background-color: #f3f4f6; /* gris claro */
+    padding: 2rem 1rem 3rem;
+}
+
+.room-detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.room-detail-title {
+    margin-bottom: 0; /* ya hay margen en el contenedor */
+}
+
+@media (min-width: 768px) {
+    .room-detail-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+/* Tarjeta principal */
+.room-detail-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .room-detail-card {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: flex-start;
+    }
+}
+
+.room-detail-info p {
+    margin-bottom: 0.5rem;
+    color: #374151; /* gray-700 */
+}
+
+.room-detail-info strong {
+    font-weight: 600;
+}
+
+/* Imagen */
+.room-detail-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.room-detail-image {
+    width: 100%;
+    max-width: 340px;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    background-color: #e5e7eb; /* gris como placeholder */
+}
+/* ======================= LISTA DE ALQUILERES ======================= */
+
+.rent-main {
+    background-color: #f3f4f6;  /* gris claro */
+    padding: 2rem 1rem 3rem;
+}
+
+.rent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Ajuste pequeño para reusar las tarjetas de solicitudes */
+.rent-list .solicitud-card {
+    cursor: pointer;
+}
+
+/* ======== CORRECCIÓN: UNIFICAR ESTILO DE LOS ENLACES DEL NAVBAR ======== */
+
+.nav-links a {
+    color: #d1d5db;              /* gris claro */
+    font-size: 0.875rem;         /* text-sm */
+    font-weight: 500;            /* font-medium */
+    padding: 0.5rem 0.75rem;     /* igual en todas las pantallas */
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.nav-links a:hover {
+    background-color: #374151;   /* gris más oscuro */
+    color: #ffffff;
+}
+
+/* Corregimos también el tamaño del usuario y logout */
+.user-actions span {
+    font-size: 0.875rem;         /* text-sm */
+    color: #d1d5db;
+}
+
+.logout-btn {
+    font-size: 0.875rem;         /* text-sm */
+}
+/* =================== BÚSQUEDA + LISTA DE HABITACIONES =================== */
+
+.search-main {
+    background-color: #f3f4f6;
+    padding: 2rem 1rem 3rem;
+}
+
+.search-filters {
+    margin-bottom: 1.5rem;
+}
+
+.room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Layout maestro-detalle */
+.room-layout {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+    align-items: flex-start;
+}
+
+/* Panel detalle a la derecha */
+.room-detail-panel {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.room-detail-panel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+.room-detail-panel-image-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.room-detail-panel-image {
+    width: 100%;
+    max-width: 260px;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    background-color: #e5e7eb;
+}
+
+/* Difuminado cuando no hay login (se reutiliza clase) */
+.room-card-image-blurred {
+    filter: blur(3px);
+    opacity: 0.6;
+}
+
+.room-detail-panel-info p {
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.room-detail-panel-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+/* =================== BARRA DE BÚSQUEDA COMPACTA =================== */
+
+.search-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.search-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.search-field select,
+.search-field input[type="date"] {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.4rem;
+    background-color: #f9fafb;
+}
+
+.search-button {
+    height: 40px;
+    align-self: center;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+}
+
+
+
+
+/* ESTILOS ESPECÍFICOS DE BÚSQUEDA Y MAPA                                    */
+
+/* Contenedor de la barra de búsqueda (Flexbox para centrar elementos) */
+.search-bar-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se muevan a la siguiente línea en móvil */
+    gap: 1.5rem;
+    align-items: flex-end; /* Alinea items en la base */
+}
+
+.search-filter-group {
+    flex-grow: 1; /* Permite que el grupo crezca y ocupe espacio */
+    min-width: 180px; /* Ancho mínimo para que no se colapse */
+}
+
+.search-input {
+    /* Reutiliza el estilo base de los inputs del formulario */
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db; 
+    border-radius: 0.375rem; 
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.search-button {
+    /* Reutiliza el estilo base del botón primario */
+    height: 38px; /* Ajusta la altura para alinear con el input */
+}
+
+/* Estilos específicos para el control de radio (slider) */
+.slider-group {
+    max-width: 300px;
+}
+
+/* Contenedor del mapa */
+.map-container {
+    height: 500px; /* Altura fija para que el mapa se muestre */
+    width: 100%;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #e0e0e0; /* Fondo temporal mientras carga */
+}
+
+/* Estilos para las tarjetas de resultado (Columna derecha) */
+.resultado-card {
+    display: flex;
+    padding: 0.75rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+}
+
+.resultado-info-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.resultado-imagen-placeholder {
+    width: 4rem; /* h-16 */
+    height: 4rem; /* h-16 */
+    background-color: #d1d5db;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+
+/* ===================== CORRECCIÓN DE LEGIBILIDAD EN DESPLEGABLES ===================== */
+
+
+/* El contenedor del desplegable */
+nav ul li.relative.group > div.absolute {
+  background: #ffffff !important;
+  opacity: 1 !important;
+  color: #1f2937 !important;      /* texto oscuro */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Los enlaces dentro del desplegable */
+nav ul li.relative.group > div.absolute a {
+  color: #111827 !important;      /* casi negro */
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+/* Hover claro y visible */
+nav ul li.relative.group > div.absolute a:hover {
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+}
+
+.nav-dropdown{
+  background:#fff !important;
+  opacity:1 !important;
+  color:#111827 !important;
+}
+
+.nav-dropdown a{
+  color:#111827 !important;
+  opacity:1 !important;
+  font-weight:500 !important;
+}
+
+.nav-dropdown a:hover{
+  background:#eef2ff !important;
+  color:#4f46e5 !important;
+}
