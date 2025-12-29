@@ -48,7 +48,7 @@
                     <div class="relative group py-4">
                         <button class="hover:text-indigo-600">Ver ▾</button>
                         <div class="absolute left-0 mt-0 hidden group-hover:block bg-white shadow-xl rounded-lg py-2 min-w-[200px] border border-gray-100">
-                            <a href="MisHospedajes.jsp" class="block px-4 py-2 hover:bg-indigo-50">Mis hospedajes</a>
+                            <a href="MisHospedajesServlet" class="block px-4 py-2 hover:bg-indigo-50">Mis hospedajes</a>
                             <a href="MisSolicitudesInquilino.jsp" class="block px-4 py-2 hover:bg-indigo-50">Mis solicitudes</a>
                         </div>
                     </div>

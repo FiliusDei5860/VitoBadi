@@ -1,7 +1,5 @@
 <%-- 
     Document   : MisHospedajes
-    Created on : 20 dic 2025, 7:24:40 p.m.
-    Author     : Resen
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List, java.util.Map" %>
@@ -29,7 +27,9 @@
 
             <section id="lista-hospedajes" class="space-y-4">
                 <%
-                    List<Map<String, String>> hospedajes = (List<Map<String, String>>) request.getAttribute("hospedajes");
+                    List<Map<String, String>> hospedajes =
+                        (List<Map<String, String>>) request.getAttribute("hospedajes");
+
                     if (hospedajes == null || hospedajes.isEmpty()) {
                 %>
                     <div class="bg-white p-8 rounded-xl shadow text-center">
@@ -41,26 +41,27 @@
                 <%
                     } else {
                         for (Map<String, String> alq : hospedajes) {
+                            String codHabi = alq.get("codHabi");
                 %>
                     <article class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition cursor-pointer"
-                             onclick="window.location.href='DetalleAlquilerServlet?id=<%= alq.get("idContrato") %>'">
-                        
+                             onclick="window.location.href='DetalleHabitacion.jsp?id=<%= codHabi %>&returnTo=MisHospedajesServlet'">
+
                         <div class="flex flex-col md:flex-row p-4 gap-6 items-center">
                             <div class="w-full md:w-40 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                                <img src="<%= alq.get("imagen") %>" class="w-full h-full object-cover" alt="Habitación">
+                                <img src="<%= alq.get("imagenHabitacion") %>" class="w-full h-full object-cover" alt="Habitación">
                             </div>
 
                             <div class="flex-grow">
                                 <h3 class="text-xl font-bold text-gray-800 mb-1">
-                                    <%= alq.get("titulo") %>
+                                    <%= alq.get("direccion") %>
                                 </h3>
                                 <p class="text-indigo-600 text-sm font-medium mb-3">
-                                    <%= alq.get("ciudad") %> · <%= alq.get("precio") %> €/mes
+                                    <%= alq.get("ciudad") %> · <%= alq.get("precioMes") %> €/mes
                                 </p>
-                                
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
-                                    <p><strong>Desde:</strong> <%= alq.get("fechaInicio") %></p>
-                                    <p><strong>Hasta:</strong> <%= alq.get("fechaFin") %></p>
+                                    <p><strong>Desde:</strong> <%= alq.get("fechaInicioAlqui") %></p>
+                                    <p><strong>Hasta:</strong> <%= alq.get("fechaFinAlqui") %></p>
                                     <p class="md:col-span-2"><strong>Propietario:</strong> <%= alq.get("propietario") %></p>
                                 </div>
                             </div>

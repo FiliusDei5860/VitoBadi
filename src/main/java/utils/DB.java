@@ -19,7 +19,7 @@ public class DB {
     // Configuración para MySQL Workbench
     private static final String URL = "jdbc:mysql://localhost:3306/vitobadi01?serverTimezone=UTC";
     private static final String USER = "root"; 
-    private static final String PASS = "choPin"; 
+    private static final String PASS = "NuevaContraseña123"; 
 
     public static Connection getConexion() {
         try {

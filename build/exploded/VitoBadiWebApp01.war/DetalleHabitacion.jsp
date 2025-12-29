@@ -1,20 +1,22 @@
 <%-- 
     Document   : DetalleHabitacion
-    Created on : 20 dic 2025, 7:02:04 p.m.
-    Author     : Resen
 --%>
 
 <%@ page import="java.sql.*, utils.DB" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    // 1. Obtener el ID de la habitación desde el parámetro de la URL (ej: DetalleHabitacion.jsp?id=1)
     String idHab = request.getParameter("id");
-    
-    // Variables para guardar los datos de la BD
+
+    // Para volver “a donde venías”
+    String returnTo = request.getParameter("returnTo");
+    if (returnTo == null || returnTo.trim().isEmpty()) {
+        // fallback (tu comportamiento anterior)
+        returnTo = "MisHabitaciones.jsp";
+    }
+
     String direccion = "No disponible";
     String ciudad = "No disponible";
-    String precio = "0.00";
-    String estado = "Desconocido";
+    String precio = "0";
     String latitud = "0";
     String longitud = "0";
     String imagenUrl = "Public_icons/default-room.jpg";
@@ -22,20 +24,26 @@
     if (idHab != null && !idHab.isEmpty()) {
         try {
             Connection conn = DB.getConexion();
-            String sql = "SELECT * FROM habitacion WHERE codHabi = ?";
+            String sql = "SELECT ciudad, `dirección`, emailPropietario, imagenHabitacion, latitudH, longitudH, precioMes " +
+                         "FROM habitacion WHERE codHabi = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, idHab);
-            ResultSet rs = ps.executeQuery();
 
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 direccion = rs.getString("dirección");
                 ciudad = rs.getString("ciudad");
-                precio = rs.getString("precioMes"); // Asegúrate que el nombre de la columna sea correcto
+                precio = String.valueOf(rs.getInt("precioMes"));
                 latitud = rs.getString("latitudH");
                 longitud = rs.getString("longitudH");
-                imagenUrl = rs.getString("imagenHabitacion"); // O el nombre de tu columna de fotos
+                String img = rs.getString("imagenHabitacion");
+                if (img != null && !img.trim().isEmpty()) {
+                    imagenUrl = img;
+                }
             }
-            conn.close();
+            rs.close();
+            ps.close();
+            // NO cierres conn aquí si tu DB.getConexion() reutiliza conexión global
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,10 +66,12 @@
     <main class="flex-grow py-10">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="flex items-center justify-between mb-8">
-                <a href="MisHabitaciones.jsp" class="bg-white border border-gray-300 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
+                <a href="<%= returnTo %>" class="bg-white border border-gray-300 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
                     ← Volver al listado
                 </a>
-                <h1 class="text-3xl font-extrabold text-indigo-800">Detalle de la Habitación #<%= idHab %></h1>
+                <h1 class="text-3xl font-extrabold text-indigo-800">
+                    Detalle de la Habitación #<%= (idHab != null ? idHab : "") %>
+                </h1>
             </div>
 
             <section class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-200">
@@ -76,7 +86,7 @@
 
                     <div class="space-y-2">
                         <p class="text-sm text-gray-500 uppercase font-bold tracking-wider">Detalles Económicos</p>
-                        <p class="text-2xl font-bold text-indigo-600">$<%= precio %></p>
+                        <p class="text-2xl font-bold text-indigo-600"><%= precio %> €/mes</p>
                     </div>
 
                     <hr class="border-gray-100">

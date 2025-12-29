@@ -1,50 +1,62 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package packServlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author Resen
- */
-
-
 @WebServlet("/DetalleHabitacionServlet")
 public class DetalleHabitacionServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        String idParam = request.getParameter("id");
 
+        String idParam = request.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {
             response.sendRedirect("MisHabitacionesServlet");
             return;
         }
 
-        // Lógica de recuperación de datos (Simulada)
-        // Habitacion h = HabitacionDAO.obtenerPorId(Integer.parseInt(idParam));
-        
-        // Simulamos el objeto recuperado
+        // -------------------------------
+        // 1) Gestionar URL de vuelta
+        // -------------------------------
+        String back = request.getParameter("back");
+
+        // Si no viene back, intenta usar Referer (plan B)
+        if (back == null || back.isBlank()) {
+            String referer = request.getHeader("Referer");
+            if (referer != null && !referer.isBlank()) {
+                request.setAttribute("volverUrl", referer);
+            } else {
+                request.setAttribute("volverUrl", "MisHabitacionesServlet");
+            }
+        } else {
+            // back puede ser "MisHospedajesServlet" o "MisHabitacionesServlet" o incluso "Busqueda"
+            // Si además quieres conservar parámetros, puedes pasar back ya con querystring.
+            request.setAttribute("volverUrl", back);
+        }
+
+        // -------------------------------
+        // 2) Lógica de recuperación (SIMULADA)
+        // -------------------------------
+        // Aquí más adelante harás SQL real con codHabi = idParam
+        request.setAttribute("codHabi", idParam);
         request.setAttribute("direccion", "Avenida de Gasteiz, 22");
         request.setAttribute("ciudad", "Vitoria-Gasteiz");
-        request.setAttribute("precio", "400 €/mes");
-        request.setAttribute("latitud", "42.8467");
-        request.setAttribute("longitud", "-2.6716");
-        request.setAttribute("estado", "Disponible");
-        request.setAttribute("imagenUrl", "https://via.placeholder.com/600x400");
+        request.setAttribute("precioMes", "400"); // mejor como número/string sin €/mes
+        request.setAttribute("latitudH", "42.8467");
+        request.setAttribute("longitudH", "-2.6716");
+        request.setAttribute("imagenHabitacion", "https://via.placeholder.com/600x400");
 
-        // Enviamos al JSP
+        // -------------------------------
+        // 3) Enviar al JSP
+        // -------------------------------
         request.getRequestDispatcher("DetalleHabitacion.jsp").forward(request, response);
     }
 }

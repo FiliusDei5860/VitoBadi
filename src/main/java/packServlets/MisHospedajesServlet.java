@@ -1,21 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
-
-/**
- *
- * @author Resen
- */
-
 package packServlets;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,36 +17,82 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import utils.DB;
+
 @WebServlet("/MisHospedajesServlet")
 public class MisHospedajesServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        HttpSession session = request.getSession();
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
+
+        HttpSession session = request.getSession(false);
+        String emailUsuario = (session != null) ? (String) session.getAttribute("emailUsuario") : null;
 
         if (emailUsuario == null) {
             response.sendRedirect("Login.jsp");
             return;
         }
 
-        // SIMULACIÓN: En la realidad aquí harías: AlquilerDAO.listarHospedajes(emailUsuario)
         List<Map<String, String>> listaHospedajes = new ArrayList<>();
-        
-        Map<String, String> h1 = new HashMap<>();
-        h1.put("idContrato", "501");
-        h1.put("titulo", "Habitación Exterior Centro");
-        h1.put("direccion", "Calle Dato, 14");
-        h1.put("ciudad", "Vitoria-Gasteiz");
-        h1.put("precio", "420");
-        h1.put("fechaInicio", "2025-01-15");
-        h1.put("fechaFin", "2025-07-15");
-        h1.put("propietario", "propietario@ejemplo.com");
-        h1.put("imagen", "https://via.placeholder.com/150");
-        
-        listaHospedajes.add(h1);
+
+        String sql =
+            "SELECT " +
+            "  a.idAlquiler, a.codHabi, a.fechaInicioAlqui, a.fechaFinAlqui, " +
+            "  h.ciudad, h.`dirección` AS direccion, h.precioMes, h.imagenHabitacion, " +
+            "  u.email AS emailPropietario, u.nombre AS nombrePropietario " +
+            "FROM alquiler a " +
+            "JOIN habitacion h ON a.codHabi = h.codHabi " +
+            "JOIN usuario u ON h.emailPropietario = u.email " +
+            "WHERE a.emailInquilino = ? " +
+            "ORDER BY a.fechaInicioAlqui DESC";
+
+        try (Connection conn = DB.getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, emailUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, String> h = new HashMap<>();
+
+                    int idAlquiler = rs.getInt("idAlquiler");
+                    int codHabi    = rs.getInt("codHabi");
+                    Date ini = rs.getDate("fechaInicioAlqui");
+                    Date fin = rs.getDate("fechaFinAlqui");
+
+                    // IDs
+                    h.put("idAlquiler", String.valueOf(idAlquiler));
+                    h.put("codHabi", String.valueOf(codHabi));
+
+                    // Datos habitación
+                    h.put("ciudad", rs.getString("ciudad"));
+                    h.put("direccion", rs.getString("direccion"));
+                    h.put("precioMes", String.valueOf(rs.getInt("precioMes")));
+                    h.put("fechaInicioAlqui", (ini != null ? ini.toString() : ""));
+                    h.put("fechaFinAlqui", (fin != null ? fin.toString() : ""));
+
+                    String img = rs.getString("imagenHabitacion");
+                    if (img == null || img.trim().isEmpty()) {
+                        img = "Public_icons/hab1.png"; // fallback
+                    }
+                    h.put("imagenHabitacion", img);
+
+                    // Propietario
+                    String propietarioNombre = rs.getString("nombrePropietario");
+                    String propietarioEmail  = rs.getString("emailPropietario");
+                    h.put("propietario",
+                            (propietarioNombre != null && !propietarioNombre.isEmpty())
+                                    ? propietarioNombre
+                                    : propietarioEmail);
+
+                    listaHospedajes.add(h);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         request.setAttribute("hospedajes", listaHospedajes);
         request.getRequestDispatcher("MisHospedajes.jsp").forward(request, response);
