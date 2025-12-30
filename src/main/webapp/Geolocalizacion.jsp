@@ -32,6 +32,10 @@
     %>
 
 
+    <script>
+  const LOGUEADO = <%= Boolean.TRUE.equals(request.getAttribute("logueado"))%>;
+    </script>
+
     <div class="container mx-auto px-4 max-w-6xl">
         <h1 class="text-3xl font-bold text-center text-indigo-800 mb-2">Geolocalización</h1>
         <p class="text-center text-gray-600 mb-6">
@@ -168,21 +172,46 @@
 
       markers.push(marker);
 
-      const info = new google.maps.InfoWindow({
-        content: `
-          <div style="max-width:240px">
-            <div style="font-weight:700;margin-bottom:4px">${h.direccion}</div>
-            <div style="color:#555;font-size:12px;margin-bottom:6px">${h.ciudad} · ${h.precioMes} €/mes</div>
-            <div style="color:#666;font-size:12px;margin-bottom:8px">
-              Disponible desde: <b>${h.disponibleDesde}</b>
-            </div>
-            <a href="DetalleHabitacionServlet?id=${h.codHabi}&returnTo=BusquedaGeolocalizacion"
-               style="display:inline-block;background:#4f46e5;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;text-decoration:none">
-               Ver detalle
-            </a>
-          </div>
-        `
-      });
+        const botonHtml = LOGUEADO
+          ? '<a href="DetalleHabitacionServlet?id=' + h.codHabi + '&returnTo=BusquedaGeolocalizacion"'
+              + ' style="display:inline-block;background:#4f46e5;color:#fff;padding:7px 10px;'
+              + 'border-radius:10px;font-size:12px;text-decoration:none">'
+              + 'Ver detalle</a>'
+          : '<a href="Login.jsp"'
+              + ' style="display:inline-block;background:#111;color:#fff;padding:7px 10px;'
+              + 'border-radius:10px;font-size:12px;text-decoration:none">'
+              + 'Inicia sesión para ver</a>';
+
+        const info = new google.maps.InfoWindow({
+          content:
+            '<div style="max-width:260px;font-family:Arial,sans-serif">' +
+
+              '<div style="display:flex;gap:10px;align-items:center">' +
+                '<img src="' + (h.img || 'Public_icons/hab1.png') + '" ' +
+                     'style="width:72px;height:54px;object-fit:cover;border-radius:8px;background:#f2f2f2" />' +
+
+                '<div style="flex:1">' +
+                  '<div style="font-weight:700;font-size:13px;margin-bottom:2px">' +
+                    h.direccion +
+                  '</div>' +
+                  '<div style="color:#4f46e5;font-size:12px;font-weight:600">' +
+                    h.ciudad +
+                  '</div>' +
+                  '<div style="font-size:12px"><b>' + h.precioMes + ' €/mes</b></div>' +
+                '</div>' +
+              '</div>' +
+
+              '<div style="margin-top:8px;font-size:12px;color:#555">' +
+                'Disponible desde: <b>' + h.disponibleDesde + '</b>' +
+              '</div>' +
+
+              '<div style="margin-top:10px">' +
+                botonHtml +
+              '</div>' +
+
+            '</div>'
+        });
+
 
         marker.addListener("click", () => {
           info.open(map, marker);
