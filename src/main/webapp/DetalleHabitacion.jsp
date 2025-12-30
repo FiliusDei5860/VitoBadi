@@ -18,7 +18,12 @@
     String latitud = "0";
     String longitud = "0";
     String imagenUrl = "Public_icons/default-room.jpg";
+    String returnTo = request.getParameter("returnTo");
+        if (returnTo == null || returnTo.trim().isEmpty()) {
+            returnTo = "ListaHabitaciones.jsp"; // o el que tú quieras
+        }
 
+    
     if (idHab != null && !idHab.isEmpty()) {
         try {
             Connection conn = DB.getConexion();
@@ -58,9 +63,7 @@
     <main class="flex-grow py-10">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="flex items-center justify-between mb-8">
-                <a href="MisHabitaciones.jsp" class="bg-white border border-gray-300 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
-                    ← Volver al listado
-                </a>
+                <a href="<%= returnTo%>" ...>← Volver al listado</a>
                 <h1 class="text-3xl font-extrabold text-indigo-800">Detalle de la Habitación #<%= idHab %></h1>
             </div>
 

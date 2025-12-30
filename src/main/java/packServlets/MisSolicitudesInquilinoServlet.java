@@ -7,12 +7,10 @@ import java.sql.ResultSet;
 import java.util.*;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import utils.DB;
 
-@WebServlet("/MisSolicitudesInquilinoServlet")
 public class MisSolicitudesInquilinoServlet extends HttpServlet {
 
     @Override

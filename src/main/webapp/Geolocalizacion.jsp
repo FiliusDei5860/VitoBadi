@@ -1,131 +1,283 @@
- <%-- 
-
-    Document   : Geolocalizacion
-    Created on : 20 dic 2025, 9:16:13 a.m.
-    Author     : Resen
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.sql.*, utils.DB" %>
-<%
-    // 1. Parámetros de búsqueda
-    String latVal = (request.getParameter("lat") != null) ? request.getParameter("lat") : "42.8467"; 
-    String lngVal = (request.getParameter("lng") != null) ? request.getParameter("lng") : "-2.6716";
-    String idSeleccionado = request.getParameter("idHabitacion");
-
-    // Usamos tu conexión
-    Connection conn = DB.getConexion();
-%>
+<%@ page import="java.util.List, java.util.Map" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Explorar - VitoBadi</title>
+    <title>Geolocalización – VitoBadi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="./Public_icons/VitoBadiIcon.jpg">
+    <link rel="stylesheet" href="CSS/style.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        #map { height: 400px; width: 100%; border-radius: 0.75rem; background: #e5e7eb; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4F46E5; border-radius: 10px; }
-    </style>
+
+    <!-- Pon tu API KEY aquí antes de entregar -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtizczsj_0KipWe9tcTp_hsOBFdlWGEeE&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
-    
-    <jsp:include page="NavBar.jsp" />
 
-    <main class="container mx-auto my-8 px-4 max-w-7xl flex-grow">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="col-span-1 space-y-4 overflow-y-auto h-screen pr-2 custom-scrollbar">
-                <h3 class="font-bold text-gray-700 border-b pb-2 mb-4">Habitaciones Disponibles</h3>
-                <%
-                    String sql = "SELECT * FROM habitacion";
-                    Statement st = conn.createStatement();
-                    ResultSet rs = st.executeQuery(sql);
-                    boolean hayDatos = false;
+<body class="flex flex-col min-h-screen bg-gray-100">
+<jsp:include page="NavBar.jsp" />
 
-                    while(rs.next()) {
-                        hayDatos = true;
-                        int idActual = rs.getInt("codHabi");
-                        boolean esLaSeleccionada = idSeleccionado != null && idSeleccionado.equals(String.valueOf(idActual));
-                %>
-                        <div onclick="location.href='Geolocalizacion.jsp?idHabitacion=<%= idActual %>&lat=<%= latVal %>&lng=<%= lngVal %>'" 
-                             class="bg-white p-4 shadow rounded-lg flex items-center gap-4 border-l-4 transition-all cursor-pointer <%= esLaSeleccionada ? "border-blue-600 bg-blue-50 ring-2 ring-blue-200" : "border-blue-400 hover:bg-gray-50" %>">
-                            <img src="<%= rs.getString("imagenHabitacion") %>" class="w-16 h-16 object-cover rounded shadow-sm">
-                            <div class="flex-1">
-                                <p class="font-bold text-sm"><%= rs.getString("dirección") %></p>
-                                <p class="text-xs text-gray-500"><%= rs.getString("ciudad") %></p>
-                                <p class="text-blue-600 font-bold"><%= rs.getDouble("precioMes") %>€/mes</p>
-                            </div>
-                        </div>
-                <% 
-                    } 
-                    if(!hayDatos) { %>
-                        <p class="text-gray-500 italic">No hay habitaciones disponibles.</p>
-                <%  } 
-                    rs.close();
-                    st.close();
-                %>
-            </div>
 
-            <div class="col-span-2">
-                <div class="bg-white p-8 shadow-xl rounded-xl min-h-[600px] sticky top-8">
-                <%
-                    if(idSeleccionado != null && !idSeleccionado.isEmpty()) {
-                        PreparedStatement ps = conn.prepareStatement("SELECT * FROM habitacion WHERE codHabi = ?");
-                        ps.setInt(1, Integer.parseInt(idSeleccionado));
-                        ResultSet rsDet = ps.executeQuery();
-                        
-                        if(rsDet.next()) {
-                %>
-                            <h2 class="text-3xl font-black text-gray-800 mb-6">Detalle de Habitación</h2>
-                            
-                            <div id="map" class="mb-6 border-2 border-white shadow-md"></div>
 
-                            <div class="grid grid-cols-2 gap-4 mb-6">
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <p class="text-xs font-bold text-gray-400 uppercase">Ubicación</p>
-                                    <p class="text-gray-700"><%= rsDet.getString("dirección") %>, <%= rsDet.getString("ciudad") %></p>
-                                </div>
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <p class="text-xs font-bold text-gray-400 uppercase">Precio</p>
-                                    <p class="text-2xl font-bold text-blue-600"><%= rsDet.getDouble("precioMes") %> €</p>
-                                </div>
-                            </div>
 
-                            <img src="<%= rsDet.getString("imagenHabitacion") %>" class="w-full h-64 object-cover rounded-xl mb-6 shadow-md">
+<%
+    List<Map<String, String>> habs = (List<Map<String, String>>) request.getAttribute("habitacionesGeo");
+%>
 
-                            <button class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition uppercase">
-                                Reservar Habitación
-                            </button>
+<main class="flex-grow py-8">
+    <%
+        Boolean logueado = (Boolean) request.getAttribute("logueado");
+        if (logueado == null)
+            logueado = false;
+    %>
 
-                            <script>
-                                function initMap() {
-                                    const pos = { 
-                                        lat: <%= rsDet.getDouble("latitudH") %>, 
-                                        lng: <%= rsDet.getDouble("longitud") %> 
-                                    };
-                                    const map = new google.maps.Map(document.getElementById("map"), {
-                                        zoom: 17,
-                                        center: pos,
-                                        disableDefaultUI: true
-                                    });
-                                    new google.maps.Marker({ position: pos, map: map });
-                                }
-                            </script>
-                <%
-                        }
-                        ps.close();
-                    } else {
-                %>
-                        <div class="flex flex-col items-center justify-center h-full text-gray-300 py-40">
-                            <p class="text-xl font-medium">Selecciona una habitación para ver el mapa</p>
-                        </div>
-                <%  } %>
+
+    <div class="container mx-auto px-4 max-w-6xl">
+        <h1 class="text-3xl font-bold text-center text-indigo-800 mb-2">Geolocalización</h1>
+        <p class="text-center text-gray-600 mb-6">
+            Se muestran todas las habitaciones excepto las tuyas. Al clicar, verás la fecha desde la que estaría disponible.
+        </p>
+        <div class="mb-4">
+            <input id="searchAddress" type="text"
+                   placeholder="Buscar por calle, ciudad…"
+                   class="w-full border rounded-lg px-3 py-2"/>
+        </div>
+        
+        <!-- PANEL DETALLE -->
+        <div id="detalleBox" class="bg-white rounded-xl shadow p-4 mb-4 hidden">
+            <div class="flex gap-4">
+                <div class="w-28 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img id="detImg" src="" class="w-full h-full object-cover" alt="Habitación">
+                </div>
+                <div class="flex-grow">
+                    <h3 id="detDir" class="font-bold text-gray-800"></h3>
+                    <p id="detCity" class="text-sm text-indigo-600 font-medium"></p>
+                    <p id="detPrice" class="text-sm text-gray-600"></p>
+                    <p class="text-sm mt-2">
+                        <strong>Disponible desde:</strong> <span id="detDisp"></span>
+                    </p>
+
+                    <% if (logueado) { %>
+                    <a id="detLink" href="#" class="inline-block mt-3 text-indigo-600 font-semibold hover:underline">
+                        Ver habitación →
+                    </a>
+                    <form action="FormularioSolicitud.jsp" method="get" class="mt-2">
+                        <input type="hidden" name="codHabi" id="detCodHabi" value="">
+                        <button class="bg-indigo-600 text-white text-sm px-3 py-2 rounded hover:bg-indigo-700">
+                            Solicitar
+                        </button>
+                    </form>
+                    <% } else { %>
+                    <p class="mt-3 text-sm text-gray-600">Inicia sesión para ver el detalle y solicitar.</p>
+                    <a href="Login.jsp" class="inline-block mt-2 text-indigo-600 font-semibold hover:underline">
+                        Ir a login →
+                    </a>
+                    <% } %>
+
+
+
                 </div>
             </div>
         </div>
-    </main>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7fLImOI_55rqllm20r_JpgNHDElD43wQ&callback=initMap" async defer></script>
-    <jsp:include page="Footer.jsp" />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <section class="lg:col-span-2 bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                <div id="map" class="w-full h-[520px]"></div>
+            </section>
+
+            <section class="bg-white rounded-xl shadow border border-gray-200 p-4 overflow-auto max-h-[520px]">
+                <h2 class="text-xl font-bold text-gray-800 mb-3">Listado</h2>
+
+                <%
+                    if (habs == null || habs.isEmpty()) {
+                %>
+                    <div class="text-center text-gray-500 py-8">No hay habitaciones para mostrar.</div>
+                <%
+                    } else {
+                        for (Map<String, String> h : habs) {
+                %>
+                        <div class="habItem p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                             data-codhabi="<%= h.get("codHabi")%>"
+                             data-dir="<%= h.get("direccion")%>"
+                             data-city="<%= h.get("ciudad")%>"
+                             data-price="<%= h.get("precioMes")%>"
+                             data-img="<%= h.get("imagenHabitacion")%>"
+                             data-disp="<%= h.get("disponibleDesde")%>">
+
+                            <div class="font-bold"><%= h.get("direccion")%></div>
+                            <div class="text-sm text-gray-600"><%= h.get("ciudad")%> · <%= h.get("precioMes")%> €/mes</div>
+                            <div class="text-xs text-gray-500">Disponible desde: <%= h.get("disponibleDesde")%></div>
+                        </div>
+
+                <%
+                        }
+                    }
+                %>
+            </section>
+        </div>
+    </div>
+</main>
+
+<jsp:include page="Footer.jsp" />
+
+<script>
+  let map;
+  const markersById = {};
+  const markers = []; // para filtrar por distancia con Autocomplete
+
+  function initMap() {
+    const centerDefault = { lat: 42.8460, lng: -2.6720 }; // Vitoria
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: centerDefault,
+      zoom: 12
+    });
+
+    const data = [
+    <% if (habs != null) {
+              for (int i = 0; i < habs.size(); i++) {
+                  Map<String, String> h = habs.get(i);
+    %>
+      {
+        codHabi: "<%= h.get("codHabi")%>",
+        direccion: "<%= h.get("direccion").replace("\"", "\\\"")%>",
+        ciudad: "<%= h.get("ciudad").replace("\"", "\\\"")%>",
+        precioMes: "<%= h.get("precioMes")%>",
+        img: "<%= h.get("imagenHabitacion")%>",
+        disponibleDesde: "<%= h.get("disponibleDesde")%>",
+        lat: parseFloat("<%= h.get("latitudH")%>"),
+        lng: parseFloat("<%= h.get("longitudH")%>")
+      }<%= (i < habs.size() - 1) ? "," : ""%>
+    <% }
+          }%>
+    ];
+
+    const bounds = new google.maps.LatLngBounds();
+
+    data.forEach(h => {
+      // evita NaN si algo viene vacío
+      if (isNaN(h.lat) || isNaN(h.lng)) return;
+
+      const pos = { lat: h.lat, lng: h.lng };
+      bounds.extend(pos);
+
+      const marker = new google.maps.Marker({
+        position: pos,
+        map: map,
+        title: h.direccion
+      });
+
+      markers.push(marker);
+
+      const info = new google.maps.InfoWindow({
+        content: `
+          <div style="max-width:240px">
+            <div style="font-weight:700;margin-bottom:4px">${h.direccion}</div>
+            <div style="color:#555;font-size:12px;margin-bottom:6px">${h.ciudad} · ${h.precioMes} €/mes</div>
+            <div style="color:#666;font-size:12px;margin-bottom:8px">
+              Disponible desde: <b>${h.disponibleDesde}</b>
+            </div>
+            <a href="DetalleHabitacionServlet?id=${h.codHabi}&returnTo=BusquedaGeolocalizacion"
+               style="display:inline-block;background:#4f46e5;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;text-decoration:none">
+               Ver detalle
+            </a>
+          </div>
+        `
+      });
+
+        marker.addListener("click", () => {
+          info.open(map, marker);
+
+          // Rellena el panel detalle (igual que al clicar en la lista)
+          mostrarDetalle({
+            codhabi: h.codHabi,
+            dir: h.direccion,
+            city: h.ciudad,
+            price: h.precioMes,
+            img: h.img,
+            disp: h.disponibleDesde
+          });
+        });
+
+      markersById[h.codHabi] = { marker, info };
+    });
+
+    if (data.length > 0) map.fitBounds(bounds);
+
+    // ===== Autocomplete (Places) =====
+    const input = document.getElementById("searchAddress");
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ["geocode"],
+      componentRestrictions: { country: "es" }
+    });
+
+    autocomplete.addListener("place_changed", () => {
+  const place = autocomplete.getPlace();
+  if (!place.geometry) return;
+
+  if (place.geometry.viewport) {
+    map.fitBounds(place.geometry.viewport);
+  } else if (place.geometry.location) {
+    map.panTo(place.geometry.location);
+    map.setZoom(14);
+  }
+
+  const center = place.geometry.location;
+  if (!center) return;
+
+  const maxKm = 20;
+  markers.forEach(m => {
+    const dKm = google.maps.geometry.spherical
+      .computeDistanceBetween(center, m.getPosition()) / 1000;
+    m.setVisible(dKm <= maxKm);
+  });
+});
+
+  }
+
+  function focusMarker(codHabi) {
+    const item = markersById[codHabi];
+    if (!item) return;
+    map.panTo(item.marker.getPosition());
+    map.setZoom(14);
+    item.info.open(map, item.marker);
+  }
+</script>
+
+<script>
+  function mostrarDetalle(data) {
+    const box = document.getElementById("detalleBox");
+    document.getElementById("detImg").src = data.img || "Public_icons/hab1.png";
+    document.getElementById("detDir").textContent = data.dir || "";
+    document.getElementById("detCity").textContent = data.city || "";
+    document.getElementById("detPrice").textContent = (data.price ? (data.price + " €/mes") : "");
+    document.getElementById("detDisp").textContent = data.disp || "";
+    document.getElementById("detCodHabi").value = data.codhabi;
+
+
+    // link opcional a la ficha
+    document.getElementById("detLink").href = "DetalleHabitacionServlet?id=" + encodeURIComponent(data.codhabi) + "&returnTo=BusquedaGeolocalizacion";
+
+    box.classList.remove("hidden");
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  document.querySelectorAll(".habItem").forEach(item => {
+    item.addEventListener("click", (e) => {
+        const d = {
+          codhabi: item.dataset.codhabi,
+          dir: item.dataset.dir,
+          city: item.dataset.city,
+          price: item.dataset.price,
+          img: item.dataset.img,
+          disp: item.dataset.disp
+        };
+        mostrarDetalle(d);
+        focusMarker(d.codhabi);   // <-- AÑADE ESTA LÍNEA
+      });
+
+  });
+</script>
+
+
 </body>
 </html>

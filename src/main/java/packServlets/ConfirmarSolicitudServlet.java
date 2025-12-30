@@ -13,14 +13,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import utils.DB; // Asegúrate de que esta sea la ruta correcta a tu clase de conexión
 
-@WebServlet(name = "ConfirmarSolicitudServlet", urlPatterns = {"/ConfirmarSolicitudServlet"})
 public class ConfirmarSolicitudServlet extends HttpServlet {
 
     @Override

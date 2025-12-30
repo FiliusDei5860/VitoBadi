@@ -13,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAF4Aqgve1yzrgvWTkbYGwK4eeJtQmKAdM"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtizczsj_0KipWe9tcTp_hsOBFdlWGEeE"></script>
 
     <link rel="stylesheet" href="./Css/style.css">
 </head>

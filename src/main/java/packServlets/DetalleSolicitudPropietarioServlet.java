@@ -9,12 +9,10 @@ import java.io.IOException;
 import java.sql.*;
 import utils.DB;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/DetalleSolicitudPropietarioServlet")
 public class DetalleSolicitudPropietarioServlet extends HttpServlet {
 
     @Override

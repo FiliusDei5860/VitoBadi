@@ -1,7 +1,7 @@
 /build/
 /.gradle/
 /nbproject/private/
-/out/
 *.class
 *.log
+
 

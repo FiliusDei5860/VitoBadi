@@ -31,7 +31,7 @@
                     <button class="hover:text-indigo-600">Consultar ▾</button>
                     <div class="absolute left-0 mt-0 hidden group-hover:block bg-white shadow-xl rounded-lg py-2 min-w-[220px] border border-gray-100">
                         <a href="Busqueda.jsp" class="block px-4 py-2 hover:bg-indigo-50">Búsqueda</a>
-                        <a href="Geolocalizacion.jsp" class="block px-4 py-2 hover:bg-indigo-50">Por Geolocalización</a>
+                        <a href="BusquedaGeolocalizacion" class="block px-4 py-2 hover:bg-indigo-50">Por Geolocalización</a>
                     </div>
                 </div>
 
@@ -55,7 +55,7 @@
                             <a href="MisSolicitudesInquilinoServlet" class="block px-4 py-2 hover:bg-indigo-50">Ver mis solicitudes</a>
 
                             <!-- Si aún no tienes "MisAlquileresInquilinoServlet", deja MisHospedajes.jsp -->
-                            <a href="MisHospedajes.jsp" class="block px-4 py-2 hover:bg-indigo-50">Ver mis alquileres</a>
+                            <a href="MisHospedajesServlet" class="block px-4 py-2 hover:bg-indigo-50">Ver mis alquileres</a>
                         </div>
                     </div>
 
