@@ -15,11 +15,15 @@ import java.sql.SQLException;
 
 public class DB {
     private static Connection conn = null;
+    private static final String URL = "jdbc:mysql://localhost:3306/vitobadi01test?serverTimezone=UTC";
+//    
+//    // Configuración para MySQL Workbench IVAN
+//    private static final String USER = "root"; 
+//    private static final String PASS = "root"; 
     
-    // Configuración para MySQL Workbench
-    private static final String URL = "jdbc:mysql://localhost:3306/vitobadi01?serverTimezone=UTC";
+    // Configuración para MySQL Workbench Diego
     private static final String USER = "root"; 
-    private static final String PASS = "root"; 
+    private static final String PASS = "choPin"; 
 
     public static Connection getConexion() {
         try {

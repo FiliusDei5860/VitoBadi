@@ -11,7 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Pon tu API KEY aquí antes de entregar -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtizczsj_0KipWe9tcTp_hsOBFdlWGEeE&libraries=places,geometry&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB7fLImOI_55rqllm20r_JpgNHDElD43wQ&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
 
 <body class="flex flex-col min-h-screen bg-gray-100">
