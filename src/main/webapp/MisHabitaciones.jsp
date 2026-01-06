@@ -19,7 +19,6 @@
     }
 
     // 3. Consulta SQL filtrada por el propietario
-    // IMPORTANTE: Quitamos el Statement genérico y usamos el PreparedStatement correctamente
     String sql = "SELECT * FROM habitacion WHERE emailPropietario = ?";
     PreparedStatement ps = conn.prepareStatement(sql);
     ps.setString(1, emailUsuario);
@@ -56,7 +55,7 @@
                     tieneDatos = true;
                     int id = rs.getInt("codHabi");
                     String ciudadH = rs.getString("ciudad");
-                    String direccionH = rs.getString("dirección"); // Usando la tilde de tu DB
+                    String direccionH = rs.getString("dirección"); 
                     double precioH = rs.getDouble("precioMes");
                     String foto = rs.getString("imagenHabitacion");
             %>
