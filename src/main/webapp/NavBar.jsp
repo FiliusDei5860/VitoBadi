@@ -7,12 +7,37 @@
 <%
     // Recuperamos los datos de la sesión
     String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-    String emailUsuario = (String) session.getAttribute("emailUsuario");
-    Boolean esPropietario = (Boolean) session.getAttribute("esPropietario");
+    String emailUsuario  = (String) session.getAttribute("emailUsuario");
+    Boolean esPropietarioObj = (Boolean) session.getAttribute("esPropietario");
 
-    // Si esPropietario es null, lo tratamos como false
-    boolean propietario = (esPropietario != null && esPropietario);
+    // IMPORTANTE:
+    // En tu proyecto a veces se guardó como "fotoUsuario" y ahora quieres "imagenUsuario".
+    // Soportamos los dos para que funcione sí o sí.
+    String imagenUsuario = (String) session.getAttribute("imagenUsuario");
+    if (imagenUsuario == null || imagenUsuario.trim().isEmpty()) {
+        imagenUsuario = (String) session.getAttribute("fotoUsuario");
+    }
+
+    boolean propietario = (esPropietarioObj != null && esPropietarioObj);
     boolean logeado = (emailUsuario != null);
+
+    // Construir URL final para la imagen:
+    // - Si viene "img/usuarios/andoni.png" => /TU_CONTEXTO/img/usuarios/andoni.png
+    // - Si viene "/img/usuarios/andoni.png" => /TU_CONTEXTO/img/usuarios/andoni.png
+    // - Si viene "http..." => se deja tal cual
+    String fotoNav = null;
+    if (imagenUsuario != null && !imagenUsuario.trim().isEmpty()) {
+        String img = imagenUsuario.trim();
+        if (img.startsWith("http://") || img.startsWith("https://")) {
+            fotoNav = img;
+        } else {
+            if (img.startsWith("/")) img = img.substring(1);
+            fotoNav = request.getContextPath() + "/" + img;
+        }
+    } else {
+        // No tenéis default.png, así que usamos algo que sí existe (logo)
+        fotoNav = request.getContextPath() + "/Public_icons/VitoBadiIcon.jpg";
+    }
 %>
 
 <header class="bg-white shadow-md sticky top-0 z-50">
@@ -20,7 +45,7 @@
         <div class="flex justify-between items-center h-16">
 
             <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='Busqueda.jsp'">
-                <img src="./Public_icons/VitoBadiIcon.jpg" alt="Logo" class="w-10 h-10 rounded-full">
+                <img src="<%= request.getContextPath() %>/Public_icons/VitoBadiIcon.jpg" alt="Logo" class="w-10 h-10 rounded-full">
                 <h1 class="text-xl font-bold text-indigo-900 hidden sm:block">VitoBadi</h1>
             </div>
 
@@ -53,12 +78,11 @@
                         <button class="hover:text-indigo-600">Inquilino ▾</button>
                         <div class="absolute left-0 mt-0 hidden group-hover:block bg-white shadow-xl rounded-lg py-2 min-w-[240px] border border-gray-100">
                             <a href="MisSolicitudesInquilinoServlet" class="block px-4 py-2 hover:bg-indigo-50">Ver mis solicitudes</a>
-
                             <a href="MisHospedajesServlet" class="block px-4 py-2 hover:bg-indigo-50">Ver mis alquileres</a>
                         </div>
                     </div>
 
-                    <!-- PROPIETARIO (SOLO SI TIENE HABITACIONES) -->
+                    <!-- PROPIETARIO -->
                     <% if (propietario) { %>
                         <div class="relative group py-4">
                             <button class="hover:text-indigo-600">Propietario ▾</button>
@@ -78,7 +102,13 @@
                 </span>
 
                 <% if (logeado) { %>
-                    <a href="PerfilServlet" class="text-xl hover:scale-110 transition" title="Perfil">👤</a>
+                    <!-- FOTO PERFIL (en vez del icono 👤) -->
+                    <a href="PerfilServlet" class="flex items-center gap-2" title="Perfil">
+                        <img src="<%= fotoNav %>"
+                             alt="Perfil"
+                             class="w-9 h-9 rounded-full object-cover border border-gray-200">
+                    </a>
+
                     <a href="LogoutServlet" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-600 hover:text-white transition">
                         Salir
                     </a>
